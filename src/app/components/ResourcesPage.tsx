@@ -4,6 +4,8 @@ import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
 import { EmptyState, EMPTY_STATES } from './SharedStates';
+import { PageHeader } from './PageHeader';
+import { SummaryMetricCard } from './SummaryMetricCard';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface ResourcesPageProps { breadcrumbs: BreadcrumbItem[] }
@@ -77,34 +79,35 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
   return (
     <div style={{ fontFamily: 'var(--dash-font)' }}>
       <BreadcrumbNav items={breadcrumbs} />
-
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--dash-text-primary)', marginBottom: 4 }}>Cloud Resources</div>
-          <div style={{ fontSize: 13, color: 'var(--dash-text-secondary)' }}>AWS + Azure inventory · Synced 2 min ago</div>
-        </div>
-        <button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-secondary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', transition: 'border-color 0.15s ease' }}
+      <PageHeader
+        title="Cloud Resources"
+        description={<>AWS + Azure inventory {'?'} Synced 2 min ago</>}
+        actions={<button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-secondary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', transition: 'border-color 0.15s ease' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border-strong)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border)'; }}>
           <RefreshCw size={13} /> Sync now
-        </button>
-      </div>
+        </button>}
+      />
+
 
       {/* Summary KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 16, marginBottom: 20 }}>
         {[
           { label: 'Total resources', value: RESOURCES.length.toString(), color: 'var(--dash-text-primary)', bg: 'var(--dash-bg-surface)' },
-          { label: 'Running',         value: running.toString(),          color: 'var(--dash-success)',       bg: 'var(--dash-success-tint)' },
-          { label: 'Warnings',        value: warnings.toString(),         color: 'var(--dash-warning)',       bg: 'var(--dash-warning-tint)' },
-          { label: 'Stopped',         value: stopped.toString(),          color: 'var(--dash-danger)',        bg: 'var(--dash-danger-tint)'  },
+          { label: 'Running', value: running.toString(), color: 'var(--dash-success)', bg: 'var(--dash-success-tint)' },
+          { label: 'Warnings', value: warnings.toString(), color: 'var(--dash-warning)', bg: 'var(--dash-warning-tint)' },
+          { label: 'Stopped', value: stopped.toString(), color: 'var(--dash-danger)', bg: 'var(--dash-danger-tint)' },
         ].map(s => (
-          <div key={s.label} style={{ backgroundColor: s.bg, border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', padding: isMobile ? '12px 14px' : '14px 18px', transition: 'transform 0.15s ease' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{s.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: s.color, fontVariantNumeric: 'tabular-nums' }}>{s.value}</div>
-          </div>
+          <SummaryMetricCard
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            valueColor={s.color}
+            backgroundColor={s.bg}
+            padding={isMobile ? '12px 14px' : '14px 18px'}
+            valueSize={24}
+          />
         ))}
       </div>
 

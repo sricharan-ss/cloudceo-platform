@@ -3,6 +3,7 @@ import { User, Lock, Monitor, Key, Bell, Cloud, Clock, ChevronRight, Check, Came
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
+import { SectionHeader } from './SectionHeader';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface ProfilePageProps {
@@ -156,15 +157,6 @@ export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
 
 /* ─── Shared primitives ────────────────────────────────────────── */
 
-function SectionTitle({ title, desc }: { title: string; desc?: string }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--dash-text-primary)', marginBottom: 4 }}>{title}</div>
-      {desc && <div style={{ fontSize: 13, color: 'var(--dash-text-secondary)', lineHeight: 1.55 }}>{desc}</div>}
-    </div>
-  );
-}
-
 function Field({ label, value, type = 'text', hint }: { label: string; value: string; type?: string; hint?: string }) {
   return (
     <div style={{ marginBottom: 16 }}>
@@ -217,7 +209,7 @@ function PrefToggle({ on }: { on: boolean }) {
 function ProfileSection({ onSave, saved, isMobile }: { onSave: () => void; saved: boolean; isMobile: boolean }) {
   return (
     <div>
-      <SectionTitle title="Personal information" desc="Update your name, email, and profile details." />
+      <SectionHeader title="Personal information" description="Update your name, email, and profile details." />
       <Field label="Full name"     value="John Davidson" />
       <Field label="Email address" value="john.davidson@cloudceo.com" type="email" hint="Used for login and notifications" />
       <Field label="Job title"     value="Chief Executive Officer" />
@@ -231,7 +223,7 @@ function ProfileSection({ onSave, saved, isMobile }: { onSave: () => void; saved
 function SecuritySection() {
   return (
     <div>
-      <SectionTitle title="Password & security" desc="Manage your password and two-factor authentication." />
+      <SectionHeader title="Password & security" description="Manage your password and two-factor authentication." />
       {[
         { title: 'Password', sub: 'Last changed 90 days ago', action: 'Change password', status: null },
         { title: 'Two-factor authentication', sub: 'Add an extra layer of security', action: null, status: 'Enabled' as const },
@@ -260,7 +252,7 @@ function SessionsSection({ isMobile }: { isMobile: boolean }) {
   ];
   return (
     <div>
-      <SectionTitle title="Active sessions" desc="Manage devices currently signed in to your account." />
+      <SectionHeader title="Active sessions" description="Manage devices currently signed in to your account." />
       {sessions.map((s, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
@@ -282,7 +274,7 @@ function SessionsSection({ isMobile }: { isMobile: boolean }) {
 function ApiSection({ isMobile }: { isMobile: boolean }) {
   return (
     <div>
-      <SectionTitle title="API access" desc="Personal API keys for programmatic access." />
+      <SectionHeader title="API access" description="Personal API keys for programmatic access." />
       {[
         { name: 'Production key',        prefix: 'cc_prod_', created: 'Jan 12, 2026', last: '2h ago',      scopes: 'read:billing, read:security' },
         { name: 'Analytics integration', prefix: 'cc_int_',  created: 'Mar 4, 2026',  last: '5 days ago',  scopes: 'read:billing' },
@@ -314,7 +306,7 @@ function NotificationsSection() {
   ];
   return (
     <div>
-      <SectionTitle title="Notification preferences" desc="Choose how and when CloudCEO contacts you." />
+      <SectionHeader title="Notification preferences" description="Choose how and when CloudCEO contacts you." />
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 320 }}>
           <thead>
@@ -341,7 +333,7 @@ function NotificationsSection() {
 function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
   return (
     <div>
-      <SectionTitle title="Connected cloud accounts" desc="Manage your AWS and Azure account connections." />
+      <SectionHeader title="Connected cloud accounts" description="Manage your AWS and Azure account connections." />
       {[
         { variant: 'aws' as const, name: 'Amazon Web Services', account: '123456789012', status: 'connected', sync: '2 min ago' },
         { variant: 'azure' as const, name: 'Microsoft Azure', account: 'cloudceo-prod-001', status: 'connected', sync: '4 min ago' },
@@ -376,7 +368,7 @@ function ActivitySection() {
   ];
   return (
     <div>
-      <SectionTitle title="Recent activity" desc="A log of recent account actions." />
+      <SectionHeader title="Recent activity" description="A log of recent account actions." />
       {events.map((e, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '11px 0', borderBottom: i < events.length - 1 ? '1px solid var(--dash-border-light)' : 'none', gap: 12 }}>
           <div>

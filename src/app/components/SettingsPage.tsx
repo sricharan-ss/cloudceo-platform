@@ -3,6 +3,7 @@ import { Globe, Cloud, Bell, Lock, Key, Users, CreditCard, Check, ChevronRight }
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
+import { SectionHeader } from './SectionHeader';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface SettingsPageProps {
@@ -146,15 +147,6 @@ export function SettingsPage({ breadcrumbs }: SettingsPageProps) {
 
 /* ─── Shared primitives ────────────────────────────────────────── */
 
-function SectionTitle({ title, desc }: { title: string; desc?: string }) {
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--dash-text-primary)', marginBottom: 4 }}>{title}</div>
-      {desc && <div style={{ fontSize: 13, color: 'var(--dash-text-secondary)', lineHeight: 1.55 }}>{desc}</div>}
-    </div>
-  );
-}
-
 function Field({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div style={{ marginBottom: 18 }}>
@@ -206,7 +198,7 @@ function PrefToggle({ on }: { on: boolean }) {
 function GeneralSection({ onSave, saved, isMobile }: { onSave: () => void; saved: boolean; isMobile: boolean }) {
   return (
     <div>
-      <SectionTitle title="General" desc="Organization-level settings for your CloudCEO workspace." />
+      <SectionHeader title="General" description="Organization-level settings for your CloudCEO workspace." />
       <Field label="Organization name" value="CloudCEO" />
       <Field label="Default timezone" value="America/New_York (UTC−5)" />
       <Field label="Default currency" value="USD ($)" />
@@ -224,7 +216,7 @@ function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
   ];
   return (
     <div>
-      <SectionTitle title="Cloud connections" desc="Manage your AWS and Azure account integrations." />
+      <SectionHeader title="Cloud connections" description="Manage your AWS and Azure account integrations." />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
         {providers.map((c, i) => (
           <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: isMobile ? '14px 16px' : '18px 20px' }}>
@@ -267,7 +259,7 @@ function NotificationsSection() {
   ];
   return (
     <div>
-      <SectionTitle title="Notification channels" desc="Configure where CloudCEO sends alerts and reports." />
+      <SectionHeader title="Notification channels" description="Configure where CloudCEO sends alerts and reports." />
       {channels.map((c, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
@@ -281,7 +273,7 @@ function NotificationsSection() {
         </div>
       ))}
       <div style={{ marginTop: 20 }}>
-        <SectionTitle title="Alert preferences" />
+        <SectionHeader title="Alert preferences" marginBottom={24} />
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--dash-border)' }}>
@@ -319,7 +311,7 @@ function SecuritySection() {
   ];
   return (
     <div>
-      <SectionTitle title="Security settings" desc="Workspace-wide security and access policies." />
+      <SectionHeader title="Security settings" description="Workspace-wide security and access policies." />
       {policies.map((s, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1 }}>
@@ -342,7 +334,7 @@ function ApiKeysSection({ isMobile }: { isMobile: boolean }) {
   ];
   return (
     <div>
-      <SectionTitle title="API keys" desc="Workspace API keys for service-to-service integrations." />
+      <SectionHeader title="API keys" description="Workspace API keys for service-to-service integrations." />
       {keys.map((k, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -371,7 +363,7 @@ function TeamSection({ isMobile }: { isMobile: boolean }) {
   const roleColors: Record<string, 'success' | 'warning'> = { Owner: 'success', Admin: 'warning', Viewer: 'success' };
   return (
     <div>
-      <SectionTitle title="Team members" desc="Manage who has access to your CloudCEO workspace." />
+      <SectionHeader title="Team members" description="Manage who has access to your CloudCEO workspace." />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {members.map((m, i) => (
           <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
@@ -401,7 +393,7 @@ function TeamSection({ isMobile }: { isMobile: boolean }) {
 function BillingSection() {
   return (
     <div>
-      <SectionTitle title="Plan & billing" desc="Your CloudCEO subscription and payment details." />
+      <SectionHeader title="Plan & billing" description="Your CloudCEO subscription and payment details." />
       <div style={{ backgroundColor: 'var(--dash-accent-tint)', borderRadius: 8, border: '1px solid var(--dash-accent)', padding: '18px 20px', marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <div>

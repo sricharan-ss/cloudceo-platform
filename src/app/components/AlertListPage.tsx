@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Search, Filter, ChevronUp, ChevronDown } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { SecurityEventPanel, } from './SecurityEventPanel';
+import { FilterChip } from './FilterChip';
 import { SECURITY_EVENTS, type SecurityEvent } from './RecentSecurityEventsTable';
 
 // Extend with more events for the full list
@@ -81,19 +82,7 @@ export function AlertListPage({ breadcrumbs }: AlertListPageProps) {
         {/* Severity filter */}
         <div style={{ display: 'flex', gap: 8 }}>
           {(['all', 'critical', 'warning'] as SevFilter[]).map(f => (
-            <button
-              key={f}
-              onClick={() => setSevFilter(f)}
-              style={{
-                padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                border: `1px solid ${sevFilter === f ? 'var(--dash-accent)' : 'var(--dash-border)'}`,
-                backgroundColor: sevFilter === f ? 'var(--dash-accent-tint)' : 'var(--dash-bg-surface)',
-                color: sevFilter === f ? 'var(--dash-accent)' : 'var(--dash-text-secondary)',
-                fontFamily: 'var(--dash-font)', transition: 'all 0.12s ease',
-              }}
-            >
-              {f === 'all' ? 'All' : f === 'critical' ? 'Critical' : 'Warning'}
-            </button>
+            <FilterChip key={f} label={f === 'all' ? 'All' : f === 'critical' ? 'Critical' : 'Warning'} active={sevFilter === f} onClick={() => setSevFilter(f)} />
           ))}
         </div>
 
