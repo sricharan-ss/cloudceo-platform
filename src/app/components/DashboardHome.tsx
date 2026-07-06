@@ -302,7 +302,7 @@ function DashboardDesktop({ onNavigate }: { onNavigate?: (s: Screen) => void }) 
         <StatCard label="Open security alerts" value="3"       valueSize={32} badge={<StatusBadge label="1 critical" severity="danger" />} onClick={() => onNavigate?.('security')} />
       </div>
 
-      {/* AI Insights + Quick Actions */}
+      {/* AI assistant highlights + Quick Actions */}
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16 }}>
         <AiInsightsWidget />
         <QuickActionsPanel onNavigate={onNavigate} />

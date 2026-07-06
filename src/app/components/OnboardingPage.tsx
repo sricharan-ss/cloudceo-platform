@@ -20,7 +20,7 @@ const STEPS = [
 const FEATURES = [
   { icon: BarChart2, label: 'Cost Analytics',    desc: 'Real-time AWS + Azure cost tracking' },
   { icon: Shield,    label: 'Security Monitoring', desc: 'WAF alerts and vulnerability detection' },
-  { icon: Sparkles,  label: 'AI Insights',       desc: 'Intelligent recommendations and forecasts' },
+  { icon: Sparkles,  label: 'CloudCEO AI',      desc: 'Intelligent recommendations and forecasts' },
   { icon: Server,    label: 'Resource Inventory', desc: 'Complete cloud resource management'   },
 ];
 
@@ -233,7 +233,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 28 }}>
               {[
                 { value: '12', label: 'Resources found' },
-                { value: '5',  label: 'AI insights'     },
+                { value: '5',  label: 'AI highlights'   },
                 { value: '78', label: 'Health score'    },
               ].map((s, i) => (
                 <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 10, border: '1px solid var(--dash-border)', padding: '14px 10px' }}>
