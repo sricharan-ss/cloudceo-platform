@@ -92,7 +92,7 @@ export function Sidebar({ currentScreen, onNavigate, collapsed = false }: Sideba
           </div>
           {!collapsed && (
             <div>
-              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--dash-text-primary)', fontFamily: 'var(--dash-font)', letterSpacing: '-0.01em' }}>LMExams</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--dash-text-primary)', fontFamily: 'var(--dash-font)', letterSpacing: '-0.01em' }}>CloudCEO</span>
               <div style={{ fontSize: 9, fontWeight: 500, color: 'var(--dash-text-muted)', letterSpacing: '0.04em', marginTop: -1 }}>Cloud Management</div>
             </div>
           )}
@@ -117,7 +117,7 @@ export function Sidebar({ currentScreen, onNavigate, collapsed = false }: Sideba
       {/* Version indicator */}
       {!collapsed && (
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--dash-border)' }}>
-          <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>LMExams Cloud Platform</div>
+          <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CloudCEO Cloud Management Platform</div>
           <div style={{ fontSize: 10, color: 'var(--dash-text-muted)', marginTop: 2 }}>Enterprise v2.0</div>
         </div>
       )}

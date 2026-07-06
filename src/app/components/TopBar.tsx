@@ -70,7 +70,7 @@ export function TopBar({
             <div style={{ width: 26, height: 26, backgroundColor: 'var(--dash-accent)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2 12L7.5 3L13 12H2Z" fill="white" /></svg>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--dash-text-primary)', letterSpacing: '-0.01em' }}>LMExams</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--dash-text-primary)', letterSpacing: '-0.01em' }}>CloudCEO</span>
           </div>
         )}
         {simplified && <div style={{ width: 1, height: 16, backgroundColor: 'var(--dash-border)', flexShrink: 0 }} />}
@@ -184,7 +184,7 @@ export function TopBar({
                   <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: 'var(--dash-accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'var(--dash-accent)', flexShrink: 0 }}>SG</div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)' }}>Srikanth Ganesan</div>
-                    <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CEO · LMExams</div>
+                    <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CEO · CloudCEO</div>
                   </div>
                 </div>
               </div>

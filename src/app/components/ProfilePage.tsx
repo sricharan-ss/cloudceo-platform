@@ -59,8 +59,8 @@ export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--dash-text-primary)' }}>John Davidson</div>
-            <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', marginTop: 2 }}>CEO · Acme Corporation</div>
-            <div style={{ fontSize: 12, color: 'var(--dash-text-secondary)', marginTop: 1 }}>john.davidson@acmecorp.com</div>
+            <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', marginTop: 2 }}>CEO · CloudCEO</div>
+            <div style={{ fontSize: 12, color: 'var(--dash-text-secondary)', marginTop: 1 }}>john.davidson@cloudceo.com</div>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
               </button>
             </div>
             <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>John Davidson</div>
-            <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', marginTop: 2 }}>CEO · Acme Corp</div>
+            <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', marginTop: 2 }}>CEO · CloudCEO</div>
           </div>
 
           {/* Nav items */}
@@ -219,9 +219,9 @@ function ProfileSection({ onSave, saved, isMobile }: { onSave: () => void; saved
     <div>
       <SectionTitle title="Personal information" desc="Update your name, email, and profile details." />
       <Field label="Full name"     value="John Davidson" />
-      <Field label="Email address" value="john.davidson@acmecorp.com" type="email" hint="Used for login and notifications" />
+      <Field label="Email address" value="john.davidson@cloudceo.com" type="email" hint="Used for login and notifications" />
       <Field label="Job title"     value="Chief Executive Officer" />
-      <Field label="Organization"  value="Acme Corporation" />
+      <Field label="Organization"  value="CloudCEO" />
       <Field label="Time zone"     value="America/New_York (UTC−5)" />
       <SaveBtn onSave={onSave} saved={saved} />
     </div>
@@ -344,7 +344,7 @@ function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
       <SectionTitle title="Connected cloud accounts" desc="Manage your AWS and Azure account connections." />
       {[
         { variant: 'aws' as const, name: 'Amazon Web Services', account: '123456789012', status: 'connected', sync: '2 min ago' },
-        { variant: 'azure' as const, name: 'Microsoft Azure', account: 'acme-prod-001', status: 'connected', sync: '4 min ago' },
+        { variant: 'azure' as const, name: 'Microsoft Azure', account: 'cloudceo-prod-001', status: 'connected', sync: '4 min ago' },
       ].map((c, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '16px 18px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -371,7 +371,7 @@ function ActivitySection() {
     { action: 'Exported cost report',         detail: 'May 2026 Billing Summary PDF',        time: '5h ago'  },
     { action: 'Acknowledged security alert',  detail: 'SQL injection attempt #841',          time: '1d ago'  },
     { action: 'Changed notification settings', detail: 'Enabled Slack for critical alerts',  time: '3d ago'  },
-    { action: 'Connected Azure account',      detail: 'Subscription acme-prod-001',          time: '4d ago'  },
+    { action: 'Connected Azure account',      detail: 'Subscription cloudceo-prod-001',          time: '4d ago'  },
     { action: 'Created API key',              detail: 'Analytics integration key',           time: '14d ago' },
   ];
   return (

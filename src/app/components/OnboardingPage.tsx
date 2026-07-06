@@ -92,8 +92,8 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         <div style={{ width: 32, height: 32, backgroundColor: 'var(--dash-accent)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="17" height="17" viewBox="0 0 15 15" fill="none"><path d="M2 12L7.5 3L13 12H2Z" fill="white" /></svg>
         </div>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--dash-text-primary)', letterSpacing: '-0.01em' }}>LMExams</span>
-        <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginLeft: 2 }}>Cloud Platform</span>
+        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--dash-text-primary)', letterSpacing: '-0.01em' }}>CloudCEO</span>
+        <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginLeft: 2 }}>Cloud Management Platform</span>
       </div>
 
       {/* Progress bar */}
@@ -126,7 +126,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
             <div style={{ width: 64, height: 64, borderRadius: 18, backgroundColor: 'var(--dash-accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <Sparkles size={30} color="var(--dash-accent)" strokeWidth={1.5} />
             </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--dash-text-primary)', marginBottom: 8 }}>Welcome to LMExams Cloud</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--dash-text-primary)', marginBottom: 8 }}>Welcome to CloudCEO</div>
             <div style={{ fontSize: 14, color: 'var(--dash-text-secondary)', lineHeight: 1.7, marginBottom: 28, maxWidth: 380, margin: '0 auto 28px' }}>
               Your enterprise cloud management platform. Connect your AWS and Azure accounts to get started with intelligent cost analytics, security monitoring, and AI-powered insights.
             </div>

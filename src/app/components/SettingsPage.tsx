@@ -105,7 +105,7 @@ export function SettingsPage({ breadcrumbs }: SettingsPageProps) {
         <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', overflow: 'hidden', position: 'sticky', top: 96 }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--dash-border)' }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text-primary)' }}>Settings</div>
-            <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginTop: 2 }}>Acme Corporation</div>
+            <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginTop: 2 }}>CloudCEO</div>
           </div>
           <nav style={{ padding: '8px 0' }}>
             {TABS.map(t => {
@@ -207,7 +207,7 @@ function GeneralSection({ onSave, saved, isMobile }: { onSave: () => void; saved
   return (
     <div>
       <SectionTitle title="General" desc="Organization-level settings for your CloudCEO workspace." />
-      <Field label="Organization name" value="Acme Corporation" />
+      <Field label="Organization name" value="CloudCEO" />
       <Field label="Default timezone" value="America/New_York (UTC−5)" />
       <Field label="Default currency" value="USD ($)" />
       <Field label="Fiscal year start" value="January" />
@@ -220,7 +220,7 @@ function GeneralSection({ onSave, saved, isMobile }: { onSave: () => void; saved
 function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
   const providers = [
     { variant: 'aws' as const, name: 'Amazon Web Services', account: '123456789012', region: 'us-east-1', features: ['Cost Explorer', 'Billing', 'WAF'], sync: '2 min ago' },
-    { variant: 'azure' as const, name: 'Microsoft Azure', account: 'acme-prod-001', region: 'East US', features: ['Cost Management', 'WAF', 'Defender'], sync: '4 min ago' },
+    { variant: 'azure' as const, name: 'Microsoft Azure', account: 'cloudceo-prod-001', region: 'East US', features: ['Cost Management', 'WAF', 'Defender'], sync: '4 min ago' },
   ];
   return (
     <div>
@@ -261,7 +261,7 @@ function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
 
 function NotificationsSection() {
   const channels = [
-    { label: 'Email',   value: 'john.davidson@acmecorp.com', on: true  },
+    { label: 'Email',   value: 'john.davidson@cloudceo.com', on: true  },
     { label: 'Slack',   value: '#cloud-alerts',              on: false },
     { label: 'Webhook', value: 'Not configured',             on: false },
   ];
@@ -363,10 +363,10 @@ function ApiKeysSection({ isMobile }: { isMobile: boolean }) {
 
 function TeamSection({ isMobile }: { isMobile: boolean }) {
   const members = [
-    { name: 'John Davidson',  email: 'john@acmecorp.com',   role: 'Owner',  last: 'Active now' },
-    { name: 'Sarah Chen',     email: 'sarah@acmecorp.com',  role: 'Admin',  last: '1h ago'     },
-    { name: 'Marcus Webb',    email: 'marcus@acmecorp.com', role: 'Viewer', last: '3h ago'     },
-    { name: 'Priya Patel',    email: 'priya@acmecorp.com',  role: 'Viewer', last: '2d ago'     },
+    { name: 'John Davidson',  email: 'john@cloudceo.com',   role: 'Owner',  last: 'Active now' },
+    { name: 'Sarah Chen',     email: 'sarah@cloudceo.com',  role: 'Admin',  last: '1h ago'     },
+    { name: 'Marcus Webb',    email: 'marcus@cloudceo.com', role: 'Viewer', last: '3h ago'     },
+    { name: 'Priya Patel',    email: 'priya@cloudceo.com',  role: 'Viewer', last: '2d ago'     },
   ];
   const roleColors: Record<string, 'success' | 'warning'> = { Owner: 'success', Admin: 'warning', Viewer: 'success' };
   return (

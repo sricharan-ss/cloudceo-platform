@@ -218,7 +218,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text-primary)' }}>CloudCEO AI</div>
               <div style={{ fontSize: 11, color: 'var(--dash-success)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: 'var(--dash-success)', display: 'inline-block' }} />
-                Active · AWS + Azure · LMExams
+                Active · AWS + Azure · CloudCEO
               </div>
             </div>
             {tab === 'assistant' && hasMessages && (

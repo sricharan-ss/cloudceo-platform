@@ -13,7 +13,6 @@ import { SettingsPage } from './components/SettingsPage';
 import { AlertListPage } from './components/AlertListPage';
 import { ForecastPage } from './components/ForecastPage';
 import { NotificationPanel } from './components/NotificationPanel';
-import { NotificationsPage } from './components/NotificationsPage';
 import { FloatingAiButton } from './components/FloatingAiButton';
 import { useBreakpoint } from './hooks/useBreakpoint';
 import type { BreadcrumbItem } from './components/BreadcrumbNav';
