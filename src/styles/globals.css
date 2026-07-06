@@ -1,0 +1,69 @@
+/* ─── Dashboard Design Tokens ───────────────────────────────────────
+   Update values here to restyle the entire dashboard.
+   All components reference these variables.
+──────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Typography */
+  --dash-font: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Page & surface backgrounds */
+  --dash-bg-page:    #FAFAF9;
+  --dash-bg-surface: #FFFFFF;
+
+  /* Borders */
+  --dash-border:        #E5E3DE;
+  --dash-border-strong: #D1CFC8;
+  --dash-border-light:  #F0EFEB;
+
+  /* Text hierarchy */
+  --dash-text-primary:   #1C1B19;
+  --dash-text-secondary: #6B6A64;
+  --dash-text-muted:     #9C9A92;
+
+  /* Brand accent */
+  --dash-accent:      #3B5BDB;
+  --dash-accent-tint: #EEF1FC;
+
+  /* Semantic — success (cost down / healthy) */
+  --dash-success:      #4D7C5F;
+  --dash-success-tint: #EDF3EE;
+  --dash-success-text: #2D5A3D;
+
+  /* Semantic — warning */
+  --dash-warning:      #B8862E;
+  --dash-warning-tint: #FAF1E2;
+  --dash-warning-text: #7A5A1E;
+
+  /* Semantic — danger / critical */
+  --dash-danger:      #B8473F;
+  --dash-danger-tint: #F8EBEA;
+  --dash-danger-text: #7A2E2A;
+
+  /* Neutral chart color (Azure secondary, attack type bars) */
+  --dash-neutral-chart: #8B85B8;
+  --dash-neutral-attack: #6B6588;
+
+  /* Radius */
+  --dash-radius-card:   12px;
+  --dash-radius-button: 8px;
+  --dash-radius-pill:   9999px;
+
+  /* Spacing scale */
+  --dash-space-xs:  4px;
+  --dash-space-sm:  8px;
+  --dash-space-md:  12px;
+  --dash-space-lg:  16px;
+  --dash-space-xl:  20px;
+  --dash-space-2xl: 24px;
+  --dash-space-3xl: 32px;
+
+  /* Component dimensions */
+  --dash-sidebar-width:   240px;
+  --dash-sidebar-collapsed: 64px;
+  --dash-topbar-height:   64px;
+  --dash-mobile-tabbar:   56px;
+  --dash-mobile-edge-pad: 16px;
+  --dash-mobile-card-gap: 12px;
+  --dash-touch-target:    44px;
+}
