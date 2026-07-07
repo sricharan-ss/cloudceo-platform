@@ -1,27 +1,18 @@
+import { NavLink, useLocation } from 'react-router';
 import { LayoutDashboard, BarChart2, Shield, Server, FileText } from 'lucide-react';
-import type { Screen } from './Sidebar';
+import { ROUTE_PATHS, getActiveRootRouteId, type AppRouteId } from '../routes';
 
-interface MobileTabBarProps {
-  currentScreen: Screen;
-  onNavigate: (screen: Screen) => void;
-}
-
-const ITEMS: { id: Screen; label: string; Icon: React.ElementType }[] = [
-  { id: 'home',      label: 'Home',      Icon: LayoutDashboard },
-  { id: 'cost',      label: 'Cost',      Icon: BarChart2       },
-  { id: 'security',  label: 'Security',  Icon: Shield          },
-  { id: 'resources', label: 'Resources', Icon: Server          },
-  { id: 'reports',   label: 'Reports',   Icon: FileText        },
+const ITEMS: { id: AppRouteId; label: string; Icon: React.ElementType }[] = [
+  { id: 'dashboard', label: 'Home',      Icon: LayoutDashboard },
+  { id: 'cost',      label: 'Cost',      Icon: BarChart2 },
+  { id: 'security',  label: 'Security',  Icon: Shield },
+  { id: 'resources', label: 'Resources', Icon: Server },
+  { id: 'reports',   label: 'Reports',   Icon: FileText },
 ];
 
-const ROOT_IDS: Screen[] = ['home', 'cost', 'security', 'resources', 'reports'];
-
-export function MobileTabBar({ currentScreen, onNavigate }: MobileTabBarProps) {
-  // Map sub-screens to their parent root
-  const activeRoot: Screen =
-    currentScreen === 'alert-list' ? 'security' :
-    currentScreen === 'forecast'   ? 'cost'     :
-    ROOT_IDS.includes(currentScreen) ? currentScreen : 'home';
+export function MobileTabBar() {
+  const location = useLocation();
+  const activeRoot = getActiveRootRouteId(location.pathname);
 
   return (
     <div style={{
@@ -35,10 +26,11 @@ export function MobileTabBar({ currentScreen, onNavigate }: MobileTabBarProps) {
       {ITEMS.map(({ id, label, Icon }) => {
         const active = activeRoot === id;
         return (
-          <button
+          <NavLink
             key={id}
-            onClick={() => onNavigate(id)}
+            to={ROUTE_PATHS[id]}
             style={{
+              textDecoration: 'none',
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: 3, border: 'none', background: 'none',
               cursor: 'pointer', color: active ? 'var(--dash-accent)' : 'var(--dash-text-secondary)',
@@ -47,7 +39,7 @@ export function MobileTabBar({ currentScreen, onNavigate }: MobileTabBarProps) {
           >
             <Icon size={20} strokeWidth={active ? 2 : 1.5} />
             <span style={{ fontSize: 10, fontWeight: active ? 500 : 400, lineHeight: 1 }}>{label}</span>
-          </button>
+          </NavLink>
         );
       })}
     </div>

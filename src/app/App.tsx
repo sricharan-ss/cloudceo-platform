@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import { Sidebar, SIDEBAR_ROOTS, type Screen } from './components/Sidebar';
-import { TopBar } from './components/TopBar';
-import { MobileTabBar } from './components/MobileTabBar';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { DashboardHome } from './components/DashboardHome';
 import { BillingOverview } from './components/BillingOverview';
 import { SecurityOverview } from './components/SecurityOverview';
@@ -12,120 +10,145 @@ import { ProfilePage } from './components/ProfilePage';
 import { SettingsPage } from './components/SettingsPage';
 import { AlertListPage } from './components/AlertListPage';
 import { ForecastPage } from './components/ForecastPage';
-import { NotificationPanel } from './components/NotificationPanel';
-import { FloatingAiButton } from './components/FloatingAiButton';
-import { useBreakpoint } from './hooks/useBreakpoint';
+import { NotificationsPage } from './components/NotificationsPage';
+import { AppShell } from './components/AppShell';
+import { ONBOARDING_STORAGE_KEY, ROUTE_PATHS, getBreadcrumbRouteIds, getRouteById, type AppRouteId } from './routes';
 import type { BreadcrumbItem } from './components/BreadcrumbNav';
 
-/* ── Page titles ── */
-const PAGE_TITLES: Record<Screen, string> = {
-  home:            'Dashboard',
-  cost:            'Cost Analytics',
-  security:        'Security',
-  resources:       'Cloud Resources',
-  reports:         'Reports',
-  profile:         'My Profile',
-  settings:        'Settings',
-  'alert-list':    'Security Alerts',
-  forecast:        'Forecast Details',
-};
+function useOnboardingState() {
+  const [complete, setComplete] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true';
+  });
 
-/* ── Root screens ── */
-const ROOT_SCREENS: Screen[] = ['home', 'cost', 'security', 'resources', 'reports'];
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-export default function App() {
-  /* ── Navigation stack ── */
-  const [screenStack, setScreenStack] = useState<Screen[]>(['home']);
-  const screen = screenStack[screenStack.length - 1];
+    window.localStorage.setItem(ONBOARDING_STORAGE_KEY, complete ? 'true' : 'false');
+  }, [complete]);
 
-  const navigateRoot = (s: Screen) => setScreenStack([s]);
-  const pushScreen   = (s: Screen) => setScreenStack(prev => [...prev, s]);
+  return [complete, setComplete] as const;
+}
 
-  /* ── Breadcrumbs ── */
-  const breadcrumbs: BreadcrumbItem[] = screenStack.map((s, i) => ({
-    label: PAGE_TITLES[s],
-    onClick: i < screenStack.length - 1 ? () => setScreenStack(screenStack.slice(0, i + 1)) : undefined,
-  }));
+function useBreadcrumbs(): BreadcrumbItem[] {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  /* ── Onboarding ── */
-  const [onboardingDone, setOnboardingDone] = useState(false);
+  return getBreadcrumbRouteIds(location.pathname).map((routeId, index, items) => {
+    const route = getRouteById(routeId);
+    return {
+      label: route.title,
+      onClick: index < items.length - 1 ? () => navigate(route.path) : undefined,
+    };
+  });
+}
 
-  /* ── Panels ── */
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [dateRange, setDateRange]               = useState('This month');
-  const unreadCount = 3;
-
-  /* ── Breakpoint ── */
-  const bp       = useBreakpoint();
-  const isMobile = bp === 'mobile';
-  const isTablet = bp === 'tablet';
-
-  const sidebarWidth   = isMobile ? 0 : isTablet ? 64 : 240;
-  const contentPadding = isMobile ? '24px 16px' : '32px';
-
-  const sidebarActive: Screen = SIDEBAR_ROOTS.includes(screen)
-    ? screen
-    : screen === 'alert-list' ? 'security'
-    : screen === 'forecast'   ? 'cost'
-    : 'home';
-
-  /* ── Show onboarding for new users ── */
-  if (!onboardingDone) {
-    return <OnboardingPage onComplete={() => setOnboardingDone(true)} />;
-  }
+function DashboardRoute() {
+  const navigate = useNavigate();
 
   return (
-    <div style={{ fontFamily: 'var(--dash-font)', backgroundColor: 'var(--dash-bg-page)', minHeight: '100vh' }}>
-      {/* Sidebar */}
-      {!isMobile && (
-        <Sidebar currentScreen={sidebarActive} onNavigate={navigateRoot} collapsed={isTablet} />
-      )}
+    <DashboardHome onNavigate={(routeId: AppRouteId) => navigate(ROUTE_PATHS[routeId])} />
+  );
+}
 
-      {/* Top bar */}
-      <TopBar
-        title={PAGE_TITLES[screen]}
-        hasAlerts
-        unreadCount={unreadCount}
-        leftOffset={sidebarWidth}
-        simplified={isMobile}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        onBellClick={() => setNotificationOpen(true)}
-        onNavigate={pushScreen}
-        onSignOut={() => { setScreenStack(['home']); setOnboardingDone(false); }}
+function BreadcrumbPage({ children }: { children: (breadcrumbs: BreadcrumbItem[]) => ReactNode }) {
+  const breadcrumbs = useBreadcrumbs();
+  return <>{children(breadcrumbs)}</>;
+}
+
+function OnboardingRoute({ onComplete }: { onComplete: () => void }) {
+  const navigate = useNavigate();
+
+  return (
+    <OnboardingPage
+      onComplete={() => {
+        onComplete();
+        navigate(ROUTE_PATHS.dashboard, { replace: true });
+      }}
+    />
+  );
+}
+
+function ProtectedShell({ onboardingComplete, onSignOut }: { onboardingComplete: boolean; onSignOut: () => void }) {
+  const location = useLocation();
+
+  if (!onboardingComplete) {
+    return <Navigate to={ROUTE_PATHS.onboarding} replace state={{ from: location }} />;
+  }
+
+  return <AppShell onSignOut={onSignOut} />;
+}
+
+function OnboardingGate({ onboardingComplete, onComplete }: { onboardingComplete: boolean; onComplete: () => void }) {
+  if (onboardingComplete) {
+    return <Navigate to={ROUTE_PATHS.dashboard} replace />;
+  }
+
+  return <OnboardingRoute onComplete={onComplete} />;
+}
+
+export default function App() {
+  const [onboardingComplete, setOnboardingComplete] = useOnboardingState();
+
+  return (
+    <Routes>
+      <Route
+        path={ROUTE_PATHS.onboarding}
+        element={
+          <OnboardingGate
+            onboardingComplete={onboardingComplete}
+            onComplete={() => setOnboardingComplete(true)}
+          />
+        }
       />
 
-      {/* Main content */}
-      <main style={{
-        marginLeft: sidebarWidth, paddingTop: 64,
-        paddingBottom: isMobile ? 'calc(var(--dash-mobile-tabbar) + env(safe-area-inset-bottom, 8px))' : 0,
-        minHeight: '100vh', backgroundColor: 'var(--dash-bg-page)',
-      }}>
-        <div style={{ maxWidth: bp === 'desktop' ? 1280 : 'none', margin: '0 auto', padding: contentPadding }}>
-          {screen === 'home'       && <DashboardHome onNavigate={pushScreen} />}
-          {screen === 'cost'       && <BillingOverview />}
-          {screen === 'security'   && <SecurityOverview />}
-          {screen === 'resources'  && <ResourcesPage breadcrumbs={breadcrumbs} />}
-          {screen === 'reports'    && <ReportsPage breadcrumbs={breadcrumbs} />}
-          {screen === 'profile'    && <ProfilePage breadcrumbs={breadcrumbs} />}
-          {screen === 'settings'   && <SettingsPage breadcrumbs={breadcrumbs} />}
-          {screen === 'alert-list' && <AlertListPage breadcrumbs={breadcrumbs} />}
-          {screen === 'forecast'   && <ForecastPage breadcrumbs={breadcrumbs} />}
-        </div>
-      </main>
+      <Route
+        element={
+          <ProtectedShell
+            onboardingComplete={onboardingComplete}
+            onSignOut={() => setOnboardingComplete(false)}
+          />
+        }
+      >
+        <Route index element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
+        <Route path={ROUTE_PATHS.dashboard} element={<DashboardRoute />} />
+        <Route path={ROUTE_PATHS.cost} element={<BillingOverview />} />
+        <Route path={ROUTE_PATHS.security} element={<SecurityOverview />} />
+        <Route
+          path={ROUTE_PATHS.resources}
+          element={<BreadcrumbPage>{(breadcrumbs) => <ResourcesPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS.reports}
+          element={<BreadcrumbPage>{(breadcrumbs) => <ReportsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS.notifications}
+          element={<BreadcrumbPage>{(breadcrumbs) => <NotificationsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS.profile}
+          element={<BreadcrumbPage>{(breadcrumbs) => <ProfilePage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS.settings}
+          element={<BreadcrumbPage>{(breadcrumbs) => <SettingsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS['security-alerts']}
+          element={<BreadcrumbPage>{(breadcrumbs) => <AlertListPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+        <Route
+          path={ROUTE_PATHS.forecast}
+          element={<BreadcrumbPage>{(breadcrumbs) => <ForecastPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+        />
+      </Route>
 
-      {/* Mobile bottom nav */}
-      {isMobile && (
-        <MobileTabBar currentScreen={sidebarActive} onNavigate={navigateRoot} />
-      )}
-
-      {/* Notification panel slide-over */}
-      {notificationOpen && (
-        <NotificationPanel onClose={() => setNotificationOpen(false)} />
-      )}
-
-      {/* Floating CloudCEO AI */}
-      <FloatingAiButton />
-    </div>
+      <Route path="*" element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
+    </Routes>
   );
 }

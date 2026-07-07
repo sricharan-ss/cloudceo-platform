@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { Bell, Calendar, ChevronDown, Check, User, Building, Settings, LogOut, Shield, Sliders } from 'lucide-react';
-import type { Screen } from './Sidebar';
+import { ROUTE_PATHS } from '../routes';
 
 export interface TopBarBreadcrumb {
   label: string;
@@ -16,7 +17,6 @@ interface TopBarProps {
   dateRange?: string;
   onDateRangeChange?: (range: string) => void;
   onBellClick?: () => void;
-  onNavigate?: (screen: Screen) => void;
   onSignOut?: () => void;
 }
 
@@ -27,19 +27,19 @@ const DATE_OPTIONS = [
 
 export function TopBar({
   title, hasAlerts = true, unreadCount = 0, leftOffset = 240, simplified = false,
-  dateRange = 'This month', onDateRangeChange, onBellClick, onNavigate, onSignOut,
+  dateRange = 'This month', onDateRangeChange, onBellClick, onSignOut,
 }: TopBarProps) {
-  const [profileOpen, setProfileOpen]     = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const profileRef   = useRef<HTMLDivElement>(null);
-  const dateRef      = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const dateRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
-      if (dateRef.current   && !dateRef.current.contains(e.target as Node))   setDatePickerOpen(false);
+      if (dateRef.current && !dateRef.current.contains(e.target as Node)) setDatePickerOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -63,7 +63,6 @@ export function TopBar({
         fontFamily: 'var(--dash-font)',
       }}
     >
-      {/* Title — mobile shows logo + page title, desktop shows page title only */}
       <div style={{ display: 'flex', alignItems: 'center', gap: simplified ? 10 : 0 }}>
         {simplified && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -79,14 +78,11 @@ export function TopBar({
         </span>
       </div>
 
-      {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-
-        {/* Date range picker */}
         {!simplified && (
           <div ref={dateRef} style={{ position: 'relative' }}>
             <button
-              onClick={() => { setDatePickerOpen(o => !o); setProfileOpen(false); }}
+              onClick={() => { setDatePickerOpen((o) => !o); setProfileOpen(false); }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
                 borderRadius: 999, border: '1px solid var(--dash-border)',
@@ -105,7 +101,7 @@ export function TopBar({
                 backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)',
                 borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden', padding: '6px 0',
               }}>
-                {DATE_OPTIONS.map(opt => (
+                {DATE_OPTIONS.map((opt) => (
                   <button
                     key={opt}
                     onClick={() => { onDateRangeChange?.(opt); setDatePickerOpen(false); }}
@@ -116,8 +112,8 @@ export function TopBar({
                       fontWeight: opt === dateRange ? 500 : 400, fontFamily: 'var(--dash-font)',
                       textAlign: 'left',
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--dash-bg-page)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--dash-bg-page)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                   >
                     {opt}
                     {opt === dateRange && <Check size={13} color="var(--dash-accent)" />}
@@ -128,7 +124,7 @@ export function TopBar({
                   onClick={() => setDatePickerOpen(false)}
                   style={{ width: '100%', padding: '8px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--dash-accent)', fontWeight: 500, textAlign: 'left', fontFamily: 'var(--dash-font)' }}
                 >
-                  Custom range…
+                  Custom range...
                 </button>
               </div>
             )}
@@ -137,7 +133,6 @@ export function TopBar({
 
         {!simplified && <Divider />}
 
-        {/* Notification bell — always visible regardless of breakpoint */}
         <button
           onClick={() => { onBellClick?.(); setProfileOpen(false); setDatePickerOpen(false); }}
           style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', borderRadius: 6 }}
@@ -157,10 +152,9 @@ export function TopBar({
 
         <Divider />
 
-        {/* Profile avatar + dropdown */}
         <div ref={profileRef} style={{ position: 'relative' }}>
           <button
-            onClick={() => { setProfileOpen(o => !o); setDatePickerOpen(false); }}
+            onClick={() => { setProfileOpen((o) => !o); setDatePickerOpen(false); }}
             style={{
               width: simplified ? 28 : 32, height: simplified ? 28 : 32, borderRadius: '50%',
               backgroundColor: 'var(--dash-accent-tint)', border: 'none', cursor: 'pointer',
@@ -178,30 +172,28 @@ export function TopBar({
               backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)',
               borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden',
             }}>
-              {/* User header */}
               <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--dash-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: 'var(--dash-accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'var(--dash-accent)', flexShrink: 0 }}>SG</div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)' }}>Srikanth Ganesan</div>
-                    <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CEO · CloudCEO</div>
+                    <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CEO � CloudCEO</div>
                   </div>
                 </div>
               </div>
 
-              {/* Menu items */}
               <div style={{ padding: '6px 0' }}>
-                <ProfileMenuItem Icon={User}     label="My profile"    onClick={() => { onNavigate?.('profile'); setProfileOpen(false); }} />
-                <ProfileMenuItem Icon={Building} label="Organization"  onClick={() => { onNavigate?.('settings'); setProfileOpen(false); }} />
-                <ProfileMenuItem Icon={Sliders}  label="Preferences"   onClick={() => { setProfileOpen(false); }} />
-                <ProfileMenuItem Icon={Shield}   label="Security"      onClick={() => { onNavigate?.('settings'); setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={User} label="My profile" onClick={() => { navigate(ROUTE_PATHS.profile); setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={Building} label="Organization" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={Sliders} label="Preferences" onClick={() => { setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={Shield} label="Security" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
               </div>
 
               <div style={{ height: 1, backgroundColor: 'var(--dash-border-light)' }} />
 
               <div style={{ padding: '6px 0' }}>
-                <ProfileMenuItem Icon={Settings} label="Settings"      onClick={() => { onNavigate?.('settings'); setProfileOpen(false); }} />
-                <ProfileMenuItem Icon={LogOut}   label="Sign out"      onClick={() => { onSignOut?.(); setProfileOpen(false); }} danger />
+                <ProfileMenuItem Icon={Settings} label="Settings" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={LogOut} label="Sign out" onClick={() => { onSignOut?.(); setProfileOpen(false); }} danger />
               </div>
             </div>
           )}

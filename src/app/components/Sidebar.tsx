@@ -1,45 +1,39 @@
 import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router';
 import { LayoutDashboard, BarChart2, Shield, Server, FileText } from 'lucide-react';
-
-export type Screen =
-  | 'home' | 'cost' | 'security' | 'resources' | 'reports'
-  | 'profile' | 'settings' | 'alert-list' | 'forecast';
+import { ROUTE_PATHS, getActiveRootRouteId, type AppRouteId } from '../routes';
 
 interface SidebarProps {
-  currentScreen: Screen;
-  onNavigate: (screen: Screen) => void;
   collapsed?: boolean;
 }
 
 interface NavItemProps {
-  id: Screen;
+  id: AppRouteId;
   label: string;
   Icon: React.ElementType;
   isActive: boolean;
-  onClick: () => void;
   collapsed: boolean;
 }
 
-const NAV_ITEMS: { id: Screen; label: string; Icon: React.ElementType }[] = [
-  { id: 'home',      label: 'Dashboard',       Icon: LayoutDashboard },
-  { id: 'cost',      label: 'Cost Analytics',  Icon: BarChart2       },
-  { id: 'security',  label: 'Security',         Icon: Shield          },
-  { id: 'resources', label: 'Cloud Resources',  Icon: Server          },
-  { id: 'reports',   label: 'Reports',          Icon: FileText        },
+const NAV_ITEMS: { id: AppRouteId; label: string; Icon: React.ElementType }[] = [
+  { id: 'dashboard', label: 'Dashboard',       Icon: LayoutDashboard },
+  { id: 'cost',      label: 'Cost Analytics',  Icon: BarChart2 },
+  { id: 'security',  label: 'Security',        Icon: Shield },
+  { id: 'resources', label: 'Cloud Resources', Icon: Server },
+  { id: 'reports',   label: 'Reports',         Icon: FileText },
 ];
 
-// Root screens that appear in the sidebar
-export const SIDEBAR_ROOTS: Screen[] = ['home', 'cost', 'security', 'resources', 'reports'];
-
-function NavItem({ id, label, Icon, isActive, onClick, collapsed }: NavItemProps) {
+function NavItem({ id, label, Icon, isActive, collapsed }: NavItemProps) {
   const [hovered, setHovered] = useState(false);
+
   return (
-    <button
-      onClick={onClick}
+    <NavLink
+      to={ROUTE_PATHS[id]}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       title={collapsed ? label : undefined}
       style={{
+        textDecoration: 'none',
         width: '100%',
         height: 44,
         display: 'flex',
@@ -62,21 +56,15 @@ function NavItem({ id, label, Icon, isActive, onClick, collapsed }: NavItemProps
         <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, backgroundColor: 'var(--dash-accent)', borderRadius: 0 }} />
       )}
       <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
-      {!collapsed && (
-        <span style={{ fontSize: 14, fontWeight: isActive ? 500 : 400 }}>{label}</span>
-      )}
-    </button>
+      {!collapsed && <span style={{ fontSize: 14, fontWeight: isActive ? 500 : 400 }}>{label}</span>}
+    </NavLink>
   );
 }
 
-export function Sidebar({ currentScreen, onNavigate, collapsed = false }: SidebarProps) {
+export function Sidebar({ collapsed = false }: SidebarProps) {
+  const location = useLocation();
+  const activeRoot = getActiveRootRouteId(location.pathname);
   const w = collapsed ? 64 : 240;
-  // Highlight the closest sidebar root even when on a sub-screen
-  const activeRoot = SIDEBAR_ROOTS.includes(currentScreen)
-    ? currentScreen
-    : currentScreen === 'alert-list' ? 'security'
-    : currentScreen === 'forecast'   ? 'cost'
-    : 'home';
 
   return (
     <div style={{
@@ -84,7 +72,6 @@ export function Sidebar({ currentScreen, onNavigate, collapsed = false }: Sideba
       position: 'fixed', left: 0, top: 0, height: '100%', display: 'flex', flexDirection: 'column', zIndex: 10,
       transition: 'width 0.2s ease',
     }}>
-      {/* Logo */}
       <div style={{ height: 64, borderBottom: '1px solid var(--dash-border)', display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? 0 : '0 20px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 9 }}>
           <div style={{ width: 28, height: 28, backgroundColor: 'var(--dash-accent)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -99,22 +86,19 @@ export function Sidebar({ currentScreen, onNavigate, collapsed = false }: Sideba
         </div>
       </div>
 
-      {/* Main nav */}
       <nav style={{ flex: 1, padding: '10px 8px' }}>
-        {NAV_ITEMS.map(item => (
+        {NAV_ITEMS.map((item) => (
           <NavItem
             key={item.id}
             id={item.id}
             label={item.label}
             Icon={item.Icon}
             isActive={activeRoot === item.id}
-            onClick={() => onNavigate(item.id)}
             collapsed={collapsed}
           />
         ))}
       </nav>
 
-      {/* Version indicator */}
       {!collapsed && (
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--dash-border)' }}>
           <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>CloudCEO Cloud Management Platform</div>

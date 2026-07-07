@@ -14,7 +14,7 @@ import { HorizontalBarChart } from './HorizontalBarChart';
 import { TopServicesTable, SERVICES } from './TopServicesTable';
 import { SecurityAlertsTable } from './SecurityAlertsTable';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import type { Screen } from './Sidebar';
+import type { AppRouteId } from '../routes';
 
 /* ─── Data ───────────────────────────────────────────────────────── */
 const AWS_VS_AZURE = [
@@ -36,11 +36,11 @@ const AI_INSIGHTS = [
 ];
 
 const QUICK_ACTIONS = [
-  { icon: FileText,   label: 'Generate report',      desc: 'AI cloud analysis',     accent: 'var(--dash-accent)',   screen: 'reports'   as Screen },
+  { icon: FileText,   label: 'Generate report',      desc: 'AI cloud analysis',     accent: 'var(--dash-accent)',   screen: 'reports'   as AppRouteId },
   { icon: Sparkles,   label: 'Open AI assistant',    desc: 'Ask anything',          accent: 'var(--dash-accent)',   screen: null                  },
-  { icon: Shield,     label: 'Security risks',       desc: '2 critical items',      accent: 'var(--dash-danger)',   screen: 'security'  as Screen },
+  { icon: Shield,     label: 'Security risks',       desc: '2 critical items',      accent: 'var(--dash-danger)',   screen: 'security'  as AppRouteId },
   { icon: Lightbulb,  label: 'Recommendations',      desc: '$1,712/mo savings',     accent: 'var(--dash-warning)',  screen: null                  },
-  { icon: Cloud,      label: 'Cloud resources',      desc: '12 total resources',    accent: 'var(--dash-success)',  screen: 'resources' as Screen },
+  { icon: Cloud,      label: 'Cloud resources',      desc: '12 total resources',    accent: 'var(--dash-success)',  screen: 'resources' as AppRouteId },
 ];
 
 const ACTIVITY = [
@@ -145,7 +145,7 @@ function AiInsightsWidget() {
   );
 }
 
-function QuickActionsPanel({ onNavigate, isMobile }: { onNavigate?: (s: Screen) => void; isMobile?: boolean }) {
+function QuickActionsPanel({ onNavigate, isMobile }: { onNavigate?: (s: AppRouteId) => void; isMobile?: boolean }) {
   return (
     <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', padding: '18px 20px', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dash-text-primary)', marginBottom: 14, fontFamily: 'var(--dash-font)' }}>Quick actions</div>
@@ -289,7 +289,7 @@ function AwsVsAzureChart() {
 }
 
 /* ─── Desktop layout ─────────────────────────────────────────────── */
-function DashboardDesktop({ onNavigate }: { onNavigate?: (s: Screen) => void }) {
+function DashboardDesktop({ onNavigate }: { onNavigate?: (s: AppRouteId) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <AiExecutiveSummary isMobile={false} />
@@ -297,7 +297,7 @@ function DashboardDesktop({ onNavigate }: { onNavigate?: (s: Screen) => void }) 
       {/* KPI Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
         <StatCard label="Total cloud spend"    value="$42,310" trend={{ direction: 'down', percentage: '10.2%', goodDirection: 'down' }} onClick={() => onNavigate?.('cost')} />
-        <StatCard label="Projected month-end"  value="$48,900" badge={<StatusBadge label="On track" severity="success" />} onClick={() => onNavigate?.('forecast' as Screen)} />
+        <StatCard label="Projected month-end"  value="$48,900" badge={<StatusBadge label="On track" severity="success" />} onClick={() => onNavigate?.('forecast')} />
         <StatCard label="Blocked threats (7d)" value="1,284"   trend={{ direction: 'down', percentage: '6.8%', label: 'vs prev 7 days', goodDirection: 'down' }} icon={<Shield size={16} strokeWidth={1.5} />} onClick={() => onNavigate?.('security')} />
         <StatCard label="Open security alerts" value="3"       valueSize={32} badge={<StatusBadge label="1 critical" severity="danger" />} onClick={() => onNavigate?.('security')} />
       </div>
@@ -330,7 +330,7 @@ function DashboardDesktop({ onNavigate }: { onNavigate?: (s: Screen) => void }) 
 }
 
 /* ─── Tablet layout ──────────────────────────────────────────────── */
-function DashboardTablet({ onNavigate }: { onNavigate?: (s: Screen) => void }) {
+function DashboardTablet({ onNavigate }: { onNavigate?: (s: AppRouteId) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <AiExecutiveSummary isMobile={false} />
@@ -359,7 +359,7 @@ function DashboardTablet({ onNavigate }: { onNavigate?: (s: Screen) => void }) {
 }
 
 /* ─── Mobile layout ──────────────────────────────────────────────── */
-function DashboardMobile({ onNavigate }: { onNavigate?: (s: Screen) => void }) {
+function DashboardMobile({ onNavigate }: { onNavigate?: (s: AppRouteId) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--dash-space-2xl)' }}>
       {/* Date picker */}
@@ -454,7 +454,7 @@ function DashboardMobile({ onNavigate }: { onNavigate?: (s: Screen) => void }) {
 }
 
 /* ─── Export ─────────────────────────────────────────────────────── */
-interface DashboardHomeProps { onNavigate?: (screen: Screen) => void }
+interface DashboardHomeProps { onNavigate?: (screen: AppRouteId) => void }
 
 export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const bp = useBreakpoint();
@@ -462,3 +462,4 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   if (bp === 'tablet') return <DashboardTablet onNavigate={onNavigate} />;
   return <DashboardDesktop onNavigate={onNavigate} />;
 }
+
