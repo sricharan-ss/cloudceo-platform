@@ -1,9 +1,12 @@
-type Severity = 'success' | 'warning' | 'danger';
+import { badgeBaseStyle } from './uiStyles';
+
+type Severity = 'success' | 'warning' | 'danger' | 'info';
 
 const COLORS: Record<Severity, { bg: string; text: string; dot: string }> = {
-  success: { bg: '#EDF3EE', text: '#2D5A3D', dot: '#4D7C5F' },
-  warning: { bg: '#FAF1E2', text: '#7A5A1E', dot: '#B8862E' },
-  danger:  { bg: '#F8EBEA', text: '#7A2E2A', dot: '#B8473F' },
+  success: { bg: 'var(--dash-success-tint)', text: 'var(--dash-success-text)', dot: 'var(--dash-success)' },
+  warning: { bg: 'var(--dash-warning-tint)', text: 'var(--dash-warning-text)', dot: 'var(--dash-warning)' },
+  danger:  { bg: 'var(--dash-danger-tint)', text: 'var(--dash-danger-text)', dot: 'var(--dash-danger)' },
+  info:    { bg: 'var(--dash-info-tint)', text: 'var(--dash-info-text)', dot: 'var(--dash-info)' },
 };
 
 interface StatusBadgeProps {
@@ -16,16 +19,9 @@ export function StatusBadge({ label, severity }: StatusBadgeProps) {
   return (
     <span
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
+        ...badgeBaseStyle,
         backgroundColor: c.bg,
         color: c.text,
-        fontSize: 12,
-        fontWeight: 500,
-        padding: '3px 8px',
-        borderRadius: 999,
-        whiteSpace: 'nowrap',
       }}
     >
       <span

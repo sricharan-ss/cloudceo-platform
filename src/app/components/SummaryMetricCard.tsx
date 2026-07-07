@@ -1,3 +1,5 @@
+import { metricLabelStyle, surfaceCardStyle } from './uiStyles';
+
 interface SummaryMetricCardProps {
   label: string;
   value: string;
@@ -18,16 +20,15 @@ export function SummaryMetricCard({
   return (
     <div
       style={{
+        ...surfaceCardStyle,
         backgroundColor,
-        border: '1px solid var(--dash-border)',
-        borderRadius: 'var(--dash-radius-card)',
         padding,
         transition: 'transform 0.15s ease',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; }}
     >
-      <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{label}</div>
+      <div style={metricLabelStyle}>{label}</div>
       <div style={{ fontSize: valueSize, fontWeight: 700, color: valueColor, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   );

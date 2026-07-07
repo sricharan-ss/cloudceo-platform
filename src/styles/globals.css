@@ -6,6 +6,17 @@
 :root {
   /* Typography */
   --dash-font: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --dash-text-2xs: 10px;
+  --dash-text-xs: 11px;
+  --dash-text-sm: 12px;
+  --dash-text-md: 13px;
+  --dash-text-lg: 14px;
+  --dash-text-xl: 15px;
+  --dash-text-2xl: 17px;
+  --dash-text-3xl: 20px;
+  --dash-text-4xl: 22px;
+  --dash-text-5xl: 24px;
+  --dash-text-6xl: 32px;
 
   /* Page & surface backgrounds */
   --dash-bg-page:    #FAFAF9;
@@ -23,7 +34,13 @@
 
   /* Brand accent */
   --dash-accent:      #3B5BDB;
+  --dash-accent-hover:#2F4DC4;
   --dash-accent-tint: #EEF1FC;
+
+  /* Semantic - info */
+  --dash-info:      var(--dash-accent);
+  --dash-info-tint: var(--dash-accent-tint);
+  --dash-info-text: #2C47A8;
 
   /* Semantic — success (cost down / healthy) */
   --dash-success:      #4D7C5F;
@@ -44,10 +61,22 @@
   --dash-neutral-chart: #8B85B8;
   --dash-neutral-attack: #6B6588;
 
+  /* Cloud provider aliases */
+  --dash-aws-bg:   var(--dash-success-tint);
+  --dash-aws-text: var(--dash-success-text);
+  --dash-aws-dot:  var(--dash-success);
+  --dash-azure-bg:   var(--dash-warning-tint);
+  --dash-azure-text: var(--dash-warning-text);
+  --dash-azure-dot:  var(--dash-warning);
+
   /* Radius */
   --dash-radius-card:   12px;
   --dash-radius-button: 8px;
   --dash-radius-pill:   9999px;
+
+  /* Shadows */
+  --dash-shadow-sm: 0 2px 12px rgba(0,0,0,0.05);
+  --dash-shadow-md: 0 4px 20px rgba(0,0,0,0.06);
 
   /* Spacing scale */
   --dash-space-xs:  4px;
@@ -57,8 +86,20 @@
   --dash-space-xl:  20px;
   --dash-space-2xl: 24px;
   --dash-space-3xl: 32px;
+  --dash-page-gap: var(--dash-space-2xl);
+  --dash-section-gap: var(--dash-space-xl);
+  --dash-card-pad-sm: 14px;
+  --dash-card-pad-md: 16px;
+  --dash-card-pad-lg: 20px;
 
   /* Component dimensions */
+  --dash-icon-xs: 12px;
+  --dash-icon-sm: 13px;
+  --dash-icon-md: 14px;
+  --dash-icon-lg: 16px;
+  --dash-icon-xl: 18px;
+  --dash-icon-nav: 20px;
+
   --dash-sidebar-width:   240px;
   --dash-sidebar-collapsed: 64px;
   --dash-topbar-height:   64px;

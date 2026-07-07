@@ -4,6 +4,7 @@ import { StatusBadge } from './StatusBadge';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { SecurityEventPanel, } from './SecurityEventPanel';
 import { FilterChip } from './FilterChip';
+import { inputBaseStyle } from './uiStyles';
 import { SECURITY_EVENTS, type SecurityEvent } from './RecentSecurityEventsTable';
 
 // Extend with more events for the full list
@@ -71,10 +72,8 @@ export function AlertListPage({ breadcrumbs }: AlertListPageProps) {
             onChange={e => setSearch(e.target.value)}
             placeholder="Search alerts, IPs, endpoints…"
             style={{
-              width: '100%', height: 36, padding: '0 12px 0 32px', fontSize: 13,
-              fontFamily: 'var(--dash-font)', borderRadius: 'var(--dash-radius-button)',
-              border: '1px solid var(--dash-border)', backgroundColor: 'var(--dash-bg-surface)',
-              color: 'var(--dash-text-primary)', outline: 'none', boxSizing: 'border-box',
+              ...inputBaseStyle, width: '100%', height: 36, padding: '0 12px 0 32px',
+              backgroundColor: 'var(--dash-bg-surface)',
             }}
           />
         </div>

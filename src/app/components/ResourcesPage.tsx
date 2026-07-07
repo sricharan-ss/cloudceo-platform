@@ -6,6 +6,7 @@ import { CloudBadge } from './CloudBadge';
 import { EmptyState, EMPTY_STATES } from './SharedStates';
 import { PageHeader } from './PageHeader';
 import { SummaryMetricCard } from './SummaryMetricCard';
+import { inputBaseStyle, secondaryButtonStyle } from './uiStyles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface ResourcesPageProps { breadcrumbs: BreadcrumbItem[] }
@@ -82,8 +83,8 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
       {/* Header */}
       <PageHeader
         title="Cloud Resources"
-        description={<>AWS + Azure inventory {'?'} Synced 2 min ago</>}
-        actions={<button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-secondary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', transition: 'border-color 0.15s ease' }}
+        description={<>AWS + Azure inventory {' ? '} Synced 2 min ago</>}
+        actions={<button style={{ ...secondaryButtonStyle, display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', color: 'var(--dash-text-secondary)', minHeight: undefined, transition: 'border-color 0.15s ease' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border-strong)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border)'; }}>
           <RefreshCw size={13} /> Sync now
@@ -116,7 +117,7 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
         <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
           <Search size={13} color="var(--dash-text-muted)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search resources, owners, tags…"
-            style={{ width: '100%', height: 34, padding: '0 10px 0 30px', fontSize: 13, fontFamily: 'var(--dash-font)', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', backgroundColor: 'var(--dash-bg-page)', color: 'var(--dash-text-primary)', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s ease' }}
+            style={{ ...inputBaseStyle, width: '100%', height: 34, padding: '0 10px 0 30px', backgroundColor: 'var(--dash-bg-page)', transition: 'border-color 0.15s ease' }}
             onFocus={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-accent)'; }}
             onBlur={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border)'; }} />
         </div>

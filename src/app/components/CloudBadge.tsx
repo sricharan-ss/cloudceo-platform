@@ -1,8 +1,10 @@
+import { badgeBaseStyle } from './uiStyles';
+
 export type CloudVariant = 'aws' | 'azure';
 
 const CONFIG: Record<CloudVariant, { label: string; bg: string; text: string; dot: string }> = {
-  aws:   { label: 'AWS',   bg: '#EDF3EE', text: '#2D5A3D', dot: '#4D7C5F' },
-  azure: { label: 'Azure', bg: '#FAF1E2', text: '#7A5A1E', dot: '#B8862E' },
+  aws:   { label: 'AWS',   bg: 'var(--dash-aws-bg)', text: 'var(--dash-aws-text)', dot: 'var(--dash-aws-dot)' },
+  azure: { label: 'Azure', bg: 'var(--dash-azure-bg)', text: 'var(--dash-azure-text)', dot: 'var(--dash-azure-dot)' },
 };
 
 interface CloudBadgeProps {
@@ -14,16 +16,9 @@ export function CloudBadge({ variant }: CloudBadgeProps) {
   return (
     <span
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
+        ...badgeBaseStyle,
         backgroundColor: c.bg,
         color: c.text,
-        fontSize: 12,
-        fontWeight: 500,
-        padding: '3px 8px',
-        borderRadius: 999,
-        whiteSpace: 'nowrap',
       }}
     >
       <span
