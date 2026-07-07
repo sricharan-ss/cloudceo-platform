@@ -14,6 +14,8 @@ import { NotificationsPage } from './components/NotificationsPage';
 import { AppShell } from './components/AppShell';
 import { ONBOARDING_STORAGE_KEY, ROUTE_PATHS, getBreadcrumbRouteIds, getRouteById, type AppRouteId } from './routes';
 import type { BreadcrumbItem } from './components/BreadcrumbNav';
+import { DateRangeProvider } from './context/DateRangeContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 function useOnboardingState() {
   const [complete, setComplete] = useState<boolean>(() => {
@@ -95,60 +97,64 @@ export default function App() {
   const [onboardingComplete, setOnboardingComplete] = useOnboardingState();
 
   return (
-    <Routes>
-      <Route
-        path={ROUTE_PATHS.onboarding}
-        element={
-          <OnboardingGate
-            onboardingComplete={onboardingComplete}
-            onComplete={() => setOnboardingComplete(true)}
+    <NotificationProvider>
+      <DateRangeProvider>
+        <Routes>
+          <Route
+            path={ROUTE_PATHS.onboarding}
+            element={
+              <OnboardingGate
+                onboardingComplete={onboardingComplete}
+                onComplete={() => setOnboardingComplete(true)}
+              />
+            }
           />
-        }
-      />
 
-      <Route
-        element={
-          <ProtectedShell
-            onboardingComplete={onboardingComplete}
-            onSignOut={() => setOnboardingComplete(false)}
-          />
-        }
-      >
-        <Route index element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
-        <Route path={ROUTE_PATHS.dashboard} element={<DashboardRoute />} />
-        <Route path={ROUTE_PATHS.cost} element={<BillingOverview />} />
-        <Route path={ROUTE_PATHS.security} element={<SecurityOverview />} />
-        <Route
-          path={ROUTE_PATHS.resources}
-          element={<BreadcrumbPage>{(breadcrumbs) => <ResourcesPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS.reports}
-          element={<BreadcrumbPage>{(breadcrumbs) => <ReportsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS.notifications}
-          element={<BreadcrumbPage>{(breadcrumbs) => <NotificationsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS.profile}
-          element={<BreadcrumbPage>{(breadcrumbs) => <ProfilePage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS.settings}
-          element={<BreadcrumbPage>{(breadcrumbs) => <SettingsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS['security-alerts']}
-          element={<BreadcrumbPage>{(breadcrumbs) => <AlertListPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-        <Route
-          path={ROUTE_PATHS.forecast}
-          element={<BreadcrumbPage>{(breadcrumbs) => <ForecastPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
-        />
-      </Route>
+          <Route
+            element={
+              <ProtectedShell
+                onboardingComplete={onboardingComplete}
+                onSignOut={() => setOnboardingComplete(false)}
+              />
+            }
+          >
+            <Route index element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
+            <Route path={ROUTE_PATHS.dashboard} element={<DashboardRoute />} />
+            <Route path={ROUTE_PATHS.cost} element={<BillingOverview />} />
+            <Route path={ROUTE_PATHS.security} element={<SecurityOverview />} />
+            <Route
+              path={ROUTE_PATHS.resources}
+              element={<BreadcrumbPage>{(breadcrumbs) => <ResourcesPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS.reports}
+              element={<BreadcrumbPage>{(breadcrumbs) => <ReportsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS.notifications}
+              element={<BreadcrumbPage>{(breadcrumbs) => <NotificationsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS.profile}
+              element={<BreadcrumbPage>{(breadcrumbs) => <ProfilePage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS.settings}
+              element={<BreadcrumbPage>{(breadcrumbs) => <SettingsPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS['security-alerts']}
+              element={<BreadcrumbPage>{(breadcrumbs) => <AlertListPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+            <Route
+              path={ROUTE_PATHS.forecast}
+              element={<BreadcrumbPage>{(breadcrumbs) => <ForecastPage breadcrumbs={breadcrumbs} />}</BreadcrumbPage>}
+            />
+          </Route>
 
-      <Route path="*" element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
-    </Routes>
+          <Route path="*" element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
+        </Routes>
+      </DateRangeProvider>
+    </NotificationProvider>
   );
 }
