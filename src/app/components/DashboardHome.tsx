@@ -14,6 +14,8 @@ import { HorizontalBarChart } from './HorizontalBarChart';
 import { TopServicesTable, SERVICES } from './TopServicesTable';
 import { SecurityAlertsTable } from './SecurityAlertsTable';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useDateRange } from '../context/DateRangeContext';
+import { PageSkeleton } from './Skeleton';
 import type { AppRouteId } from '../routes';
 
 /* ─── Data ───────────────────────────────────────────────────────── */
@@ -176,13 +178,14 @@ function QuickActionsPanel({ onNavigate, isMobile }: { onNavigate?: (s: AppRoute
 }
 
 function RecentActivityTimeline({ isMobile }: { isMobile?: boolean }) {
+  const { preset } = useDateRange();
   const typeColors: Record<string, string> = { security: 'var(--dash-danger)', cost: 'var(--dash-warning)', ai: 'var(--dash-accent)', report: 'var(--dash-success)', infra: 'var(--dash-neutral-chart)', cloud: 'var(--dash-text-muted)' };
   return (
     <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <Activity size={14} color="var(--dash-text-secondary)" strokeWidth={1.5} />
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--dash-text-primary)', fontFamily: 'var(--dash-font)' }}>Recent activity</span>
-        <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginLeft: 'auto', fontFamily: 'var(--dash-font)' }}>Today · Jun 28, 2026</span>
+        <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginLeft: 'auto', fontFamily: 'var(--dash-font)' }}>{preset}</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -360,15 +363,15 @@ function DashboardTablet({ onNavigate }: { onNavigate?: (s: AppRouteId) => void 
 
 /* ─── Mobile layout ──────────────────────────────────────────────── */
 function DashboardMobile({ onNavigate }: { onNavigate?: (s: AppRouteId) => void }) {
+  const { preset } = useDateRange();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--dash-space-2xl)' }}>
       {/* Date picker */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--dash-border)', backgroundColor: 'var(--dash-bg-surface)', color: 'var(--dash-text-primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--dash-border)', backgroundColor: 'var(--dash-bg-surface)', color: 'var(--dash-text-primary)', fontSize: 13, fontWeight: 500, cursor: 'default', fontFamily: 'var(--dash-font)' }}>
           <Calendar size={13} color="var(--dash-text-secondary)" />
-          This month
-          <ChevronDown size={12} color="var(--dash-text-secondary)" />
-        </button>
+          {preset}
+        </div>
       </div>
 
       <AiExecutiveSummary isMobile />
@@ -458,6 +461,9 @@ interface DashboardHomeProps { onNavigate?: (screen: AppRouteId) => void }
 
 export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const bp = useBreakpoint();
+  const { isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
   if (bp === 'mobile') return <DashboardMobile onNavigate={onNavigate} />;
   if (bp === 'tablet') return <DashboardTablet onNavigate={onNavigate} />;
   return <DashboardDesktop onNavigate={onNavigate} />;

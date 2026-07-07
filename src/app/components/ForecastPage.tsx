@@ -2,6 +2,9 @@ import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useDateRange } from '../context/DateRangeContext';
+import { PageSkeleton } from './Skeleton';
 
 const DAILY_DATA = [
   { day: 'Jun 1',  actual: 1320, projected: null },
@@ -30,10 +33,16 @@ interface ForecastPageProps {
 export function ForecastPage({ breadcrumbs }: ForecastPageProps) {
   const budget = 50000;
   const projected = 48900;
-  const pctOfBudget = Math.round((projected / budget) * 100);
+  const pctOfBudget = 97.8;
+  const bp = useBreakpoint();
+  const isMobile = bp === 'mobile';
+  const isTablet = bp === 'tablet';
+  const { preset, isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
 
   return (
-    <div style={{ fontFamily: 'var(--dash-font)', maxWidth: 960 }}>
+    <div style={{ fontFamily: 'var(--dash-font)', maxWidth: isMobile ? '100%' : 960 }}>
       <BreadcrumbNav items={breadcrumbs} />
 
       {/* Header */}
@@ -42,31 +51,31 @@ export function ForecastPage({ breadcrumbs }: ForecastPageProps) {
         <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', marginBottom: 6 }}>$48,900</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <StatusBadge label="On track" severity="success" />
-          <span style={{ fontSize: 13, color: 'var(--dash-text-secondary)' }}>{pctOfBudget}% of $50,000 monthly budget · Based on Jun 1–28 spend</span>
+          <span style={{ fontSize: 13, color: 'var(--dash-text-secondary)' }}>{pctOfBudget}% of $50,000 monthly budget · Based on {preset} spend</span>
         </div>
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 16, marginBottom: 24 }}>
         {[
-          { label: 'Current spend',   value: '$42,310', sub: 'Jun 1–28 actual' },
+          { label: 'Current spend',   value: '$42,310', sub: `${preset} actual` },
           { label: 'Daily avg',       value: '$1,440',  sub: 'vs $1,613/day budget' },
           { label: 'Days remaining',  value: '2',       sub: 'of 30 billing days' },
           { label: 'Budget headroom', value: '$1,100',  sub: `${100 - pctOfBudget}% remaining` },
         ].map(c => (
-          <div key={c.label} style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 12, padding: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{c.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', marginBottom: 4 }}>{c.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--dash-text-secondary)' }}>{c.sub}</div>
+          <div key={c.label} style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{c.label}</div>
+            <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 600, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', marginBottom: 3 }}>{c.value}</div>
+            <div style={{ fontSize: 11, color: 'var(--dash-text-secondary)' }}>{c.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Budget progress bar */}
-      <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 12, padding: isMobile ? 16 : 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 4 }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>Budget utilisation</span>
-          <span style={{ fontSize: 13, color: 'var(--dash-text-secondary)' }}>$48,900 projected of $50,000 budget</span>
+          <span style={{ fontSize: 12, color: 'var(--dash-text-secondary)' }}>$48,900 projected of $50,000 budget</span>
         </div>
         <div style={{ height: 8, backgroundColor: 'var(--dash-border-light)', borderRadius: 999, overflow: 'hidden' }}>
           <div style={{ display: 'flex', height: '100%' }}>
@@ -100,41 +109,68 @@ export function ForecastPage({ breadcrumbs }: ForecastPageProps) {
 
       {/* Cost drivers */}
       <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ padding: '16px 24px 12px' }}>
+        <div style={{ padding: isMobile ? '14px 16px 10px' : '16px 24px 12px' }}>
           <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--dash-text-primary)', marginBottom: 4 }}>Projection drivers</div>
           <div style={{ fontSize: 12, color: 'var(--dash-text-secondary)' }}>Services contributing to the forecast change from current spend</div>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--dash-border)', borderTop: '1px solid var(--dash-border-light)' }}>
-              {['Service', 'Cloud', 'Current', 'Projected', 'Change', 'Reason'].map(h => (
-                <th key={h} style={{ padding: '8px 20px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--dash-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
+
+        {/* Mobile: card stack */}
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {DRIVERS.map((d, i) => (
-              <tr key={d.service} style={{ borderBottom: i < DRIVERS.length - 1 ? '1px solid var(--dash-border-light)' : 'none', height: 52 }}>
-                <td style={{ padding: '0 20px', fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>{d.service}</td>
-                <td style={{ padding: '0 20px', fontSize: 12, color: 'var(--dash-text-secondary)' }}>{d.cloud}</td>
-                <td style={{ padding: '0 20px', fontSize: 14, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums' }}>${d.current.toLocaleString()}</td>
-                <td style={{ padding: '0 20px', fontSize: 14, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>${d.projected.toLocaleString()}</td>
-                <td style={{ padding: '0 20px' }}>
-                  {d.change === 0 ? (
-                    <span style={{ fontSize: 12, color: 'var(--dash-text-muted)' }}>—</span>
-                  ) : (
-                    <span style={{ fontSize: 12, fontWeight: 500, color: d.change > 5 ? 'var(--dash-danger)' : 'var(--dash-warning)', fontVariantNumeric: 'tabular-nums' }}>
-                      +{d.change}%
-                    </span>
-                  )}
-                </td>
-                <td style={{ padding: '0 20px', fontSize: 12, color: 'var(--dash-text-secondary)', maxWidth: 260 }}>
-                  <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.reason}</span>
-                </td>
-              </tr>
+              <div key={d.service} style={{ padding: '14px 16px', borderTop: i === 0 ? '1px solid var(--dash-border-light)' : '1px solid var(--dash-border-light)', backgroundColor: 'var(--dash-bg-surface)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dash-text-primary)' }}>{d.service}</div>
+                    <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginTop: 2 }}>{d.cloud}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums' }}>${d.projected.toLocaleString()}</div>
+                    {d.change !== 0 && (
+                      <div style={{ fontSize: 11, fontWeight: 500, color: d.change > 5 ? 'var(--dash-danger)' : 'var(--dash-warning)', fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>+{d.change}%</div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--dash-text-secondary)', lineHeight: 1.4 }}>{d.reason}</div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          /* Tablet / Desktop: table (Reason column hidden on tablet) */
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--dash-border)', borderTop: '1px solid var(--dash-border-light)' }}>
+                {['Service', 'Cloud', 'Current', 'Projected', 'Change', ...(isTablet ? [] : ['Reason'])].map(h => (
+                  <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--dash-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {DRIVERS.map((d, i) => (
+                <tr key={d.service} style={{ borderBottom: i < DRIVERS.length - 1 ? '1px solid var(--dash-border-light)' : 'none', height: 52 }}>
+                  <td style={{ padding: '0 16px', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)' }}>{d.service}</td>
+                  <td style={{ padding: '0 16px', fontSize: 12, color: 'var(--dash-text-secondary)' }}>{d.cloud}</td>
+                  <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums' }}>${d.current.toLocaleString()}</td>
+                  <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>${d.projected.toLocaleString()}</td>
+                  <td style={{ padding: '0 16px' }}>
+                    {d.change === 0 ? (
+                      <span style={{ fontSize: 12, color: 'var(--dash-text-muted)' }}>—</span>
+                    ) : (
+                      <span style={{ fontSize: 12, fontWeight: 500, color: d.change > 5 ? 'var(--dash-danger)' : 'var(--dash-warning)', fontVariantNumeric: 'tabular-nums' }}>
+                        +{d.change}%
+                      </span>
+                    )}
+                  </td>
+                  {!isTablet && (
+                    <td style={{ padding: '0 16px', fontSize: 12, color: 'var(--dash-text-secondary)', maxWidth: 240 }}>
+                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.reason}</span>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

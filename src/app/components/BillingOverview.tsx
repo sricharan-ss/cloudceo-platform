@@ -6,6 +6,8 @@ import { SpendTrendChart } from "./SpendTrendChart";
 import { HorizontalBarChart } from "./HorizontalBarChart";
 import { MonthlyBreakdownTable } from "./MonthlyBreakdownTable";
 import { useBreakpoint } from "../hooks/useBreakpoint";
+import { useDateRange } from "../context/DateRangeContext";
+import { PageSkeleton } from "./Skeleton";
 
 type ViewMode = "combined" | "aws" | "azure";
 type Tab = "overview" | "aws" | "azure";
@@ -46,6 +48,9 @@ export function BillingOverview() {
 
   const isTablet = bp === "tablet";
   const isMobile = bp === "mobile";
+  const { isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
 
   return (
     <div
@@ -60,9 +65,10 @@ export function BillingOverview() {
         style={{
           display: "flex",
           alignItems: "flex-end",
-          borderBottom: "1px solid #E5E3DE",
+          borderBottom: "1px solid var(--dash-border)",
           marginBottom: isTablet || isMobile ? 24 : 32,
-          overflowX: isMobile ? "auto" : "visible",
+          overflowX: "auto",
+          scrollbarWidth: "none",
         }}
       >
         {(["overview", "aws", "azure"] as Tab[]).map((t) => (
@@ -439,6 +445,7 @@ function AwsTabContent({
   isMobile: boolean;
   isTablet: boolean;
 }) {
+  const { preset } = useDateRange();
   return (
     <div
       style={{
@@ -533,16 +540,16 @@ function AwsTabContent({
           }}
         >
           <div style={{ padding: "16px 24px 12px" }}>
-            <span
+            <div
               style={{
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: 500,
                 color: "var(--dash-text-primary)",
-                fontFamily: "var(--dash-font)",
+                marginBottom: 16,
               }}
             >
-              AWS services — Jun 2026
-            </span>
+              AWS services — {preset}
+            </div>
           </div>
           <table
             style={{
@@ -682,6 +689,7 @@ function AzureTabContent({
   isMobile: boolean;
   isTablet: boolean;
 }) {
+  const { preset } = useDateRange();
   return (
     <div
       style={{
@@ -774,16 +782,16 @@ function AzureTabContent({
           }}
         >
           <div style={{ padding: "16px 24px 12px" }}>
-            <span
+            <div
               style={{
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: 500,
                 color: "var(--dash-text-primary)",
-                fontFamily: "var(--dash-font)",
+                marginBottom: 16,
               }}
             >
-              Azure services — Jun 2026
-            </span>
+              Azure services — {preset}
+            </div>
           </div>
           <table
             style={{

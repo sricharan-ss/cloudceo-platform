@@ -6,8 +6,10 @@ import { CloudBadge } from './CloudBadge';
 import { EmptyState, EMPTY_STATES } from './SharedStates';
 import { PageHeader } from './PageHeader';
 import { SummaryMetricCard } from './SummaryMetricCard';
-import { inputBaseStyle, secondaryButtonStyle } from './uiStyles';
+import { inputBaseStyle, primaryButtonStyle, secondaryButtonStyle } from './uiStyles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useDateRange } from '../context/DateRangeContext';
+import { PageSkeleton } from './Skeleton';
 
 interface ResourcesPageProps { breadcrumbs: BreadcrumbItem[] }
 
@@ -65,6 +67,9 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
   const bp = useBreakpoint();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
+  const { isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
 
   const toggleExpanded = (id: string) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 

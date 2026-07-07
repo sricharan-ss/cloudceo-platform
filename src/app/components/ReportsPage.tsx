@@ -9,6 +9,8 @@ import { PageHeader } from './PageHeader';
 import { SummaryMetricCard } from './SummaryMetricCard';
 import { iconButtonStyle, primaryButtonStyle, secondaryButtonStyle } from './uiStyles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useDateRange } from '../context/DateRangeContext';
+import { PageSkeleton } from './Skeleton';
 
 interface ReportsPageProps { breadcrumbs: BreadcrumbItem[] }
 type ReportType = 'all' | 'cost' | 'security' | 'usage' | 'compliance';
@@ -50,6 +52,9 @@ export function ReportsPage({ breadcrumbs }: ReportsPageProps) {
   const bp = useBreakpoint();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
+  const { isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
 
   const featured = REPORTS.find(r => r.featured);
   const nonFeatured = REPORTS.filter(r => !r.featured && (filter === 'all' || r.type === filter));

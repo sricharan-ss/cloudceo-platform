@@ -151,7 +151,7 @@ export function NotificationsPage({ breadcrumbs }: NotificationsPageProps) {
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Severity</div>
               {(['all', 'critical', 'warning', 'info'] as Severity[]).map(sev => (
                 <button key={sev} onClick={() => setSeverity(sev)}
-                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '5px 0', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: severity === sev ? 600 : 400, color: severity === sev ? 'var(--dash-text-primary)' : 'var(--dash-text-secondary)', fontFamily: 'var(--dash-font)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  style={{ width: '100%', textAlign: 'left', padding: '5px 0', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: severity === sev ? 600 : 400, color: severity === sev ? 'var(--dash-text-primary)' : 'var(--dash-text-secondary)', fontFamily: 'var(--dash-font)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   {sev !== 'all' && <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: SEV_COLOR[sev as keyof typeof SEV_COLOR], display: 'inline-block', flexShrink: 0 }} />}
                   <span style={{ textTransform: 'capitalize' }}>{sev === 'all' ? 'All severities' : sev}</span>
                 </button>

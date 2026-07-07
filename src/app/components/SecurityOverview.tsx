@@ -20,6 +20,8 @@ import {
 } from "./RecentSecurityEventsTable";
 import { SecurityEventPanel } from "./SecurityEventPanel";
 import { useBreakpoint } from "../hooks/useBreakpoint";
+import { useDateRange } from "../context/DateRangeContext";
+import { PageSkeleton } from "./Skeleton";
 import type { SecurityEvent } from "./RecentSecurityEventsTable";
 
 type Tab = "overview" | "activity";
@@ -40,6 +42,9 @@ export function SecurityOverview() {
   const [selectedEvent, setSelectedEvent] =
     useState<SecurityEvent | null>(null);
   const bp = useBreakpoint();
+  const { isLoading } = useDateRange();
+
+  if (isLoading) return <PageSkeleton />;
 
   return (
     <>
@@ -54,6 +59,7 @@ export function SecurityOverview() {
           tab={tab}
           onTabChange={setTab}
           onSelectEvent={setSelectedEvent}
+          isTablet={bp === "tablet"}
         />
       )}
       <SecurityEventPanel
@@ -64,16 +70,18 @@ export function SecurityOverview() {
   );
 }
 
-/* ─── Desktop + Tablet layout (unchanged) ───────────────────────── */
+/* ─── Desktop + Tablet layout ───────────────────────────────────── */
 
 function SecurityDesktopTablet({
   tab,
   onTabChange,
   onSelectEvent,
+  isTablet,
 }: {
   tab: Tab;
   onTabChange: (t: Tab) => void;
   onSelectEvent: (e: SecurityEvent) => void;
+  isTablet: boolean;
 }) {
   return (
     <div
@@ -87,8 +95,9 @@ function SecurityDesktopTablet({
         style={{
           display: "flex",
           alignItems: "flex-end",
-          borderBottom: "1px solid #E5E3DE",
-          marginBottom: 32,
+          borderBottom: "1px solid var(--dash-border)",
+          marginBottom: isTablet ? 24 : 32,
+          overflowX: "auto",
         }}
       >
         <TabButton
@@ -112,39 +121,46 @@ function SecurityDesktopTablet({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 32,
+            gap: isTablet ? 20 : 32,
           }}
         >
+          {/* Stat grid: 2×2 on tablet, 4×1 on desktop */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: isTablet ? "1fr 1fr" : "repeat(4, 1fr)",
               gap: 20,
             }}
           >
             <StatCard
               label="Total requests"
               value="284,910"
+              labelSize={isTablet ? 11 : 12}
+              compact={isTablet}
               trend={{
                 direction: "up",
                 percentage: "12.3%",
-                label: "vs previous period",
+                label: isTablet ? "vs prev" : "vs previous period",
                 goodDirection: "up",
               }}
             />
             <StatCard
               label="Blocked requests"
               value="1,284"
+              labelSize={isTablet ? 11 : 12}
+              compact={isTablet}
               trend={{
                 direction: "up",
                 percentage: "8.6%",
-                label: "vs previous period",
+                label: isTablet ? "vs prev" : "vs previous period",
                 goodDirection: "down",
               }}
             />
             <StatCard
               label="Block rate"
               value="0.45%"
+              labelSize={isTablet ? 11 : 12}
+              compact={isTablet}
               badge={
                 <StatusBadge
                   label="Normal"
@@ -155,9 +171,11 @@ function SecurityDesktopTablet({
             <StatCard
               label="Active rules"
               value="18"
+              labelSize={isTablet ? 11 : 12}
+              compact={isTablet}
               badge={
                 <span
-                  style={{ fontSize: 12, color: "#6B6A64" }}
+                  style={{ fontSize: 12, color: "var(--dash-text-secondary)" }}
                 >
                   All rules active
                 </span>
@@ -165,10 +183,11 @@ function SecurityDesktopTablet({
             />
           </div>
 
+          {/* Chart row: stacked on tablet, side-by-side on desktop */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "3fr 2fr",
+              gridTemplateColumns: isTablet ? "1fr" : "3fr 2fr",
               gap: 20,
             }}
           >
@@ -182,10 +201,11 @@ function SecurityDesktopTablet({
             />
           </div>
 
+          {/* Table row: stacked on tablet, side-by-side on desktop */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: isTablet ? "1fr" : "1fr 1fr",
               gap: 20,
             }}
           >

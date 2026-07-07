@@ -6,6 +6,8 @@ import {
   TrendingUp, Check, Undo2, Server, Cloud,
 } from 'lucide-react';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useDateRange } from '../context/DateRangeContext';
+import { PageSkeleton } from './Skeleton';
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 type AiTab = 'assistant' | 'insights' | 'recommendations' | 'history';
@@ -120,6 +122,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
   const bp                          = useBreakpoint();
   const isMobile                    = bp === 'mobile';
   const hasMessages                 = messages.length > 0;
+  const { isLoading }               = useDateRange();
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, thinking, streamText]);
 
@@ -257,12 +260,20 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
             ))}
           </div>
 
-          {/* Content */}
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            {tab === 'assistant'       && <AssistantTab messages={messages} input={input} setInput={setInput} send={send} thinking={thinking} streamText={streamText} bottomRef={bottomRef} />}
-            {tab === 'insights'        && <InsightsTab />}
-            {tab === 'recommendations' && <RecommendationsTab visRecs={visRecs} applied={applied} undoSet={undoSet} recFilter={recFilter} setRecFilter={setRecFilter} onApply={applyRec} onUndo={undoRec} openCount={openCount} allCount={RECS.length} />}
-            {tab === 'history'         && <HistoryTab onLoad={(q) => { setTab('assistant'); send(q); }} />}
+          {/* Body */}
+          <div style={{ flex: 1, overflowY: 'auto', backgroundColor: 'var(--dash-bg-page)', position: 'relative' }}>
+            {isLoading ? (
+              <div style={{ padding: 24 }}>
+                <PageSkeleton />
+              </div>
+            ) : (
+              <>
+                {tab === 'assistant'       && <AssistantTab messages={messages} input={input} setInput={setInput} send={send} thinking={thinking} streamText={streamText} bottomRef={bottomRef} />}
+                {tab === 'insights'        && <InsightsTab />}
+                {tab === 'recommendations' && <RecommendationsTab visRecs={visRecs} applied={applied} undoSet={undoSet} recFilter={recFilter} setRecFilter={setRecFilter} onApply={applyRec} onUndo={undoRec} openCount={openCount} allCount={RECS.length} />}
+                {tab === 'history'         && <HistoryTab onLoad={(q) => { setTab('assistant'); send(q); }} />}
+              </>
+            )}
           </div>
         </div>
       )}
