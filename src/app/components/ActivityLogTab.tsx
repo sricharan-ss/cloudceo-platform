@@ -38,7 +38,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
 export function ActivityLogTab({ onSelectEvent }: { onSelectEvent: (e: SecurityEventMock) => void }) {
   const bp = useBreakpoint();
   const { provider } = useProvider();
-  const { range } = useDateRange();
+  const { preset, customRange } = useDateRange();
 
   const mocks = getProviderMocks(provider);
   const events = mocks.securityEvents;
@@ -108,9 +108,9 @@ export function ActivityLogTab({ onSelectEvent }: { onSelectEvent: (e: SecurityE
     }).sort((a, b) => {
       if (sort === 'newest') return -1; 
       if (sort === 'oldest') return 1;
-      const sevMap = { 'critical': 3, 'warning': 2, 'info': 1 };
-      if (sort === 'severity-high') return (sevMap[b.severity as any] || 0) - (sevMap[a.severity as any] || 0);
-      if (sort === 'severity-low') return (sevMap[a.severity as any] || 0) - (sevMap[b.severity as any] || 0);
+      const sevMap: Record<'critical' | 'warning' | 'info', number> = { 'critical': 3, 'warning': 2, 'info': 1 };
+      if (sort === 'severity-high') return (sevMap[b.severity] || 0) - (sevMap[a.severity] || 0);
+      if (sort === 'severity-low') return (sevMap[a.severity] || 0) - (sevMap[b.severity] || 0);
       return 0;
     });
   }, [events, search, severity, statusFilter, eventTypeFilter, cloud, sort]);
@@ -253,7 +253,7 @@ export function ActivityLogTab({ onSelectEvent }: { onSelectEvent: (e: SecurityE
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: 'var(--dash-text-muted)' }}>
-        <span>Showing {filtered.length} event{filtered.length !== 1 ? 's' : ''} for {range}</span>
+        <span>Showing {filtered.length} event{filtered.length !== 1 ? 's' : ''} for {preset}</span>
         {!isMobile && totalPages > 0 && <span>Page {page} of {totalPages}</span>}
       </div>
 
@@ -359,12 +359,6 @@ export function ActivityLogTab({ onSelectEvent }: { onSelectEvent: (e: SecurityE
             </div>
           )
         )
-      )}
-
-      {showToast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--dash-success)', color: '#fff', padding: '12px 24px', borderRadius: 999, fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8, zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', animation: 'slideUp 0.2s ease-out' }}>
-          <Check size={16} /> Export completed successfully
-        </div>
       )}
     </div>
   );
