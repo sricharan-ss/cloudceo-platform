@@ -5,25 +5,12 @@ import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { SecurityEventPanel } from './SecurityEventPanel';
 import { FilterChip } from './FilterChip';
 import { inputBaseStyle } from './uiStyles';
-import { SECURITY_EVENTS, type SecurityEvent } from './RecentSecurityEventsTable';
+import type { SecurityEventMock } from '../mocks/types';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useProvider } from '../context/ProviderContext';
+import { getProviderMocks } from '../mocks';
 
-// Extend with more events for the full list
-const ALL_EVENTS: SecurityEvent[] = [
-  ...SECURITY_EVENTS,
-  {
-    id: '7',  description: 'Rate limit threshold exceeded',         severity: 'warning', time: '15h ago', sourceIp: '203.0.113.77',  targetEndpoint: '/api/cart',      ruleMatched: 'RateLimitRule-Cart',                     country: 'Brazil',        method: 'POST',
-  },
-  {
-    id: '8',  description: 'Malformed request body detected',       severity: 'warning', time: '18h ago', sourceIp: '198.51.100.44',  targetEndpoint: '/api/products',  ruleMatched: 'AWS-AWSManagedRulesCommonRuleSet',       country: 'France',        method: 'PUT',
-  },
-  {
-    id: '9',  description: 'Scanner/probe pattern identified',       severity: 'warning', time: '22h ago', sourceIp: '192.0.2.200',    targetEndpoint: '/.env',          ruleMatched: 'AWS-AWSManagedRulesCommonRuleSet',       country: 'Netherlands',   method: 'GET',
-  },
-  {
-    id: '10', description: 'Credential stuffing attempt blocked',   severity: 'danger',  time: '2d ago',  sourceIp: '203.0.113.15',   targetEndpoint: '/api/login',     ruleMatched: 'AWS-AWSManagedRulesBotControlRuleSet',   country: 'Russia',        method: 'POST',
-  },
-];
+export type SecurityEvent = SecurityEventMock;
 
 type SortKey = 'description' | 'severity' | 'time';
 type SortDir = 'asc' | 'desc';
@@ -40,25 +27,29 @@ export function AlertListPage({ breadcrumbs }: AlertListPageProps) {
   const [sortDir, setSortDir]             = useState<SortDir>('desc');
   const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
   const bp = useBreakpoint();
+  const { provider } = useProvider();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
+
+  const mocks = getProviderMocks(provider);
+  const allEvents = mocks.securityEvents;
 
   const sort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('asc'); }
   };
 
-  const filtered = ALL_EVENTS
+  const filtered = allEvents
     .filter(e => {
-      const matchSearch = search === '' || e.description.toLowerCase().includes(search.toLowerCase()) || e.sourceIp.includes(search) || e.targetEndpoint.toLowerCase().includes(search);
-      const matchSev = sevFilter === 'all' || (sevFilter === 'critical' ? e.severity === 'danger' : e.severity === 'warning');
+      const matchSearch = search === '' || e.detail.toLowerCase().includes(search.toLowerCase()) || e.ip.includes(search) || (e.resource && e.resource.toLowerCase().includes(search));
+      const matchSev = sevFilter === 'all' || (sevFilter === 'critical' ? e.severity === 'critical' : e.severity === 'warning');
       return matchSearch && matchSev;
     })
     .sort((a, b) => {
       let v = 0;
-      if (sortKey === 'description') v = a.description.localeCompare(b.description);
+      if (sortKey === 'description') v = a.detail.localeCompare(b.detail);
       if (sortKey === 'severity')    v = a.severity.localeCompare(b.severity);
-      if (sortKey === 'time')        v = ALL_EVENTS.indexOf(a) - ALL_EVENTS.indexOf(b);
+      if (sortKey === 'time')        v = allEvents.indexOf(a) - allEvents.indexOf(b);
       return sortDir === 'asc' ? v : -v;
     });
 
@@ -102,9 +93,9 @@ export function AlertListPage({ breadcrumbs }: AlertListPageProps) {
               No alerts match your search
             </div>
           ) : filtered.map(event => {
-            const Icon = event.severity === 'danger' ? Shield : AlertTriangle;
-            const iconColor = event.severity === 'danger' ? 'var(--dash-danger)' : 'var(--dash-warning)';
-            const iconBg    = event.severity === 'danger' ? 'var(--dash-danger-tint)' : 'var(--dash-warning-tint)';
+            const Icon = event.severity === 'critical' ? Shield : AlertTriangle;
+            const iconColor = event.severity === 'critical' ? 'var(--dash-danger)' : 'var(--dash-warning)';
+            const iconBg    = event.severity === 'critical' ? 'var(--dash-danger-tint)' : 'var(--dash-warning-tint)';
             return (
               <div
                 key={event.id}
@@ -119,14 +110,14 @@ export function AlertListPage({ breadcrumbs }: AlertListPageProps) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', lineHeight: 1.4, marginBottom: 6 }}>
-                      {event.description}
+                      {event.detail}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <StatusBadge label={event.severity === 'danger' ? 'Critical' : 'Warning'} severity={event.severity} />
+                      <StatusBadge label={event.severity === 'critical' ? 'Critical' : 'Warning'} severity={event.severity === 'critical' ? 'danger' : 'warning'} />
                       <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', whiteSpace: 'nowrap' }}>{event.time}</span>
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--dash-text-secondary)', fontFamily: 'ui-monospace, monospace', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {event.sourceIp} → {event.targetEndpoint}
+                      {event.ip} → {event.resource}
                     </div>
                   </div>
                 </div>
@@ -226,13 +217,13 @@ function AlertRow({ event, isLast, onClick }: { event: SecurityEvent; isLast: bo
       style={{ borderBottom: isLast ? 'none' : '1px solid var(--dash-border-light)', backgroundColor: hovered ? 'var(--dash-bg-page)' : 'transparent', cursor: 'pointer', transition: 'background-color 0.1s ease', height: 48 }}
     >
       <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-primary)', maxWidth: 280 }}>
-        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.description}</span>
+        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.detail}</span>
       </td>
       <td style={{ padding: '0 16px' }}>
-        <StatusBadge label={event.severity === 'danger' ? 'Critical' : 'Warning'} severity={event.severity} />
+        <StatusBadge label={event.severity === 'critical' ? 'Critical' : 'Warning'} severity={event.severity === 'critical' ? 'danger' : 'warning'} />
       </td>
-      <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-primary)', fontFamily: 'ui-monospace, monospace' }}>{event.sourceIp}</td>
-      <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-secondary)', fontFamily: 'ui-monospace, monospace' }}>{event.targetEndpoint}</td>
+      <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-primary)', fontFamily: 'ui-monospace, monospace' }}>{event.ip}</td>
+      <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-secondary)', fontFamily: 'ui-monospace, monospace' }}>{event.resource}</td>
       <td style={{ padding: '0 16px', fontSize: 13, color: 'var(--dash-text-muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>{event.time}</td>
     </tr>
   );
@@ -249,11 +240,11 @@ function AlertRowCompact({ event, isLast, onClick }: { event: SecurityEvent; isL
       style={{ borderBottom: isLast ? 'none' : '1px solid var(--dash-border-light)', backgroundColor: hovered ? 'var(--dash-bg-page)' : 'transparent', cursor: 'pointer', transition: 'background-color 0.1s ease', height: 52 }}
     >
       <td style={{ padding: '0 16px', maxWidth: 260 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{event.description}</div>
-        <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', fontFamily: 'ui-monospace, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.sourceIp} → {event.targetEndpoint}</div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{event.detail}</div>
+        <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', fontFamily: 'ui-monospace, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.ip} → {event.resource}</div>
       </td>
       <td style={{ padding: '0 16px' }}>
-        <StatusBadge label={event.severity === 'danger' ? 'Critical' : 'Warning'} severity={event.severity} />
+        <StatusBadge label={event.severity === 'critical' ? 'Critical' : 'Warning'} severity={event.severity === 'critical' ? 'danger' : 'warning'} />
       </td>
       <td style={{ padding: '0 16px', fontSize: 12, color: 'var(--dash-text-muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>{event.time}</td>
     </tr>

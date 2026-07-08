@@ -7,6 +7,8 @@ import { HorizontalBarChart } from "./HorizontalBarChart";
 import { MonthlyBreakdownTable } from "./MonthlyBreakdownTable";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 import { useDateRange } from "../context/DateRangeContext";
+import { useProvider } from "../context/ProviderContext";
+import { getProviderMocks } from "../mocks";
 import { PageSkeleton } from "./Skeleton";
 
 type ViewMode = "combined" | "aws" | "azure";
@@ -43,12 +45,20 @@ const MONTHLY_ROWS = [
 
 export function BillingOverview() {
   const bp = useBreakpoint();
-  const [tab, setTab] = useState<Tab>("overview");
+  const { provider } = useProvider();
+  const mocks = getProviderMocks(provider);
+
+  // Default the tab to match the global provider
+  const defaultTab: Tab = provider === 'aws' ? 'aws' : provider === 'azure' ? 'azure' : 'overview';
+  const [tab, setTab] = useState<Tab>(defaultTab);
   const [view, setView] = useState<ViewMode>("combined");
 
   const isTablet = bp === "tablet";
   const isMobile = bp === "mobile";
   const { isLoading } = useDateRange();
+
+  const SERVICES_8 = mocks.serviceCosts;
+  const MONTHLY_ROWS = mocks.monthlyRows;
 
   if (isLoading) return <PageSkeleton />;
 

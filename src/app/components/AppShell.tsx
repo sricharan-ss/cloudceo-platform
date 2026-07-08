@@ -5,6 +5,7 @@ import { TopBar } from './TopBar';
 import { MobileTabBar } from './MobileTabBar';
 import { NotificationPanel } from './NotificationPanel';
 import { FloatingAiButton } from './FloatingAiButton';
+import { Toaster } from 'sonner';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getPageTitle, ROUTE_PATHS } from '../routes';
 import { DateRangeProvider } from '../context/DateRangeContext';
@@ -69,6 +70,8 @@ export function AppShell({ onSignOut }: AppShellProps) {
       )}
 
       <FloatingAiButton />
+      
+      <Toaster position="bottom-right" />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Bell, User, Building, Settings, LogOut, Shield, Sliders } from 'lucide-react';
+import { Bell, User, Building, Settings, LogOut, Shield, Sliders, ChevronDown } from 'lucide-react';
 import { ROUTE_PATHS } from '../routes';
 import { DateRangePicker } from './DateRangePicker';
+import { useProvider, type Provider } from '../context/ProviderContext';
 
 export interface TopBarBreadcrumb {
   label: string;
@@ -17,6 +18,96 @@ interface TopBarProps {
   simplified?: boolean;
   onBellClick?: () => void;
   onSignOut?: () => void;
+}
+
+const PROVIDER_LABELS: Record<Provider, string> = {
+  combined: 'All Clouds',
+  aws:      'AWS',
+  azure:    'Azure',
+};
+
+const PROVIDER_COLORS: Record<Provider, string> = {
+  combined: 'var(--dash-accent)',
+  aws:      '#FF9900',
+  azure:    '#0078D4',
+};
+
+function ProviderSelector() {
+  const { provider, setProvider } = useProvider();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const color = PROVIDER_COLORS[provider];
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-label="Select cloud provider"
+        aria-expanded={open}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '5px 10px', borderRadius: 8,
+          border: `1px solid ${color}40`,
+          backgroundColor: `${color}10`,
+          cursor: 'pointer', fontFamily: 'var(--dash-font)',
+          transition: 'border-color 0.15s ease',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = color; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${color}40`; }}
+      >
+        {/* Cloud icon pill */}
+        <span style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: '0.01em' }}>
+          {provider === 'combined' ? '☁' : provider === 'aws' ? '⬡' : '◆'}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 600, color, fontFamily: 'var(--dash-font)', userSelect: 'none' }}>
+          {PROVIDER_LABELS[provider]}
+        </span>
+        <ChevronDown size={11} color={color} strokeWidth={2} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 160,
+          backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)',
+          borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden',
+          padding: '6px 0',
+        }}>
+          <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.09em' }}>
+            Cloud Provider
+          </div>
+          {(['combined', 'aws', 'azure'] as Provider[]).map(p => (
+            <button
+              key={p}
+              onClick={() => { setProvider(p); setOpen(false); }}
+              style={{
+                width: '100%', padding: '8px 14px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--dash-font)',
+                backgroundColor: provider === p ? `${PROVIDER_COLORS[p]}12` : 'transparent',
+                color: provider === p ? PROVIDER_COLORS[p] : 'var(--dash-text-primary)',
+                fontSize: 13, fontWeight: provider === p ? 600 : 400,
+                transition: 'background-color 0.1s',
+              }}
+              onMouseEnter={e => { if (provider !== p) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--dash-bg-page)'; }}
+              onMouseLeave={e => { if (provider !== p) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+            >
+              <span style={{ fontSize: 12 }}>{p === 'combined' ? '☁' : p === 'aws' ? '⬡' : '◆'}</span>
+              {PROVIDER_LABELS[p]}
+              {provider === p && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', backgroundColor: PROVIDER_COLORS[p], display: 'inline-block' }} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function TopBar({
@@ -76,8 +167,14 @@ export function TopBar({
 
         {!simplified && <Divider />}
 
+        {/* Provider Selector — desktop/tablet only */}
+        {!simplified && <ProviderSelector />}
+
+        {!simplified && <Divider />}
+
         <button
           onClick={() => { onBellClick?.(); setProfileOpen(false); }}
+          aria-label="View notifications"
           style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', borderRadius: 6 }}
         >
           <Bell size={simplified ? 18 : 20} color="var(--dash-text-secondary)" strokeWidth={1.5} />
@@ -98,6 +195,8 @@ export function TopBar({
         <div ref={profileRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setProfileOpen((o) => !o); }}
+            aria-label="User profile menu"
+            aria-expanded={profileOpen}
             style={{
               width: simplified ? 28 : 32, height: simplified ? 28 : 32, borderRadius: '50%',
               backgroundColor: 'var(--dash-accent-tint)', border: 'none', cursor: 'pointer',
@@ -128,7 +227,7 @@ export function TopBar({
               <div style={{ padding: '6px 0' }}>
                 <ProfileMenuItem Icon={User} label="My profile" onClick={() => { navigate(ROUTE_PATHS.profile); setProfileOpen(false); }} />
                 <ProfileMenuItem Icon={Building} label="Organization" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
-                <ProfileMenuItem Icon={Sliders} label="Preferences" onClick={() => { setProfileOpen(false); }} />
+                <ProfileMenuItem Icon={Sliders} label="Preferences" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
                 <ProfileMenuItem Icon={Shield} label="Security" onClick={() => { navigate(ROUTE_PATHS.settings); setProfileOpen(false); }} />
               </div>
 

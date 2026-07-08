@@ -16,7 +16,7 @@ export const BLOCKED_IPS: IpRow[] = [
   { ip: '192.0.2.14',    blocked: 76,  lastSeen: '3h ago',     country: 'Germany'       },
 ];
 
-export function TopBlockedIPsTable() {
+export function TopBlockedIPsTable({ onViewAll }: { onViewAll?: () => void }) {
   return (
     <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E3DE', borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '16px 24px 0' }}>
@@ -41,6 +41,7 @@ export function TopBlockedIPsTable() {
 
       <div style={{ padding: '12px 24px', borderTop: '1px solid #F0EFEB' }}>
         <button
+          onClick={() => onViewAll?.()}
           style={{
             background: 'none',
             border: 'none',

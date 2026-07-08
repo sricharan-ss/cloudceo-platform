@@ -1,4 +1,47 @@
-import { Cloud, FileText, Sparkles, Lightbulb, Search, Server, AlertTriangle, WifiOff, RefreshCw, ShieldAlert, Unplug } from 'lucide-react';
+import { Cloud, FileText, Sparkles, Lightbulb, Search, Server, AlertTriangle, WifiOff, RefreshCw, ShieldAlert, Unplug, X } from 'lucide-react';
+
+/* ─── Utilities ──────────────────────────────────────────────────── */
+export function downloadMockFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Mock Modal ─────────────────────────────────────────────────── */
+export function MockModal({ title, children, onClose, onAction, actionLabel }: { title: string; children: React.ReactNode; onClose: () => void; onAction?: () => void; actionLabel?: string }) {
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 999, backdropFilter: 'blur(2px)' }} />
+      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', width: '90%', maxWidth: 420, zIndex: 1000, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', fontFamily: 'var(--dash-font)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--dash-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--dash-text-primary)' }}>{title}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-muted)', display: 'flex' }}><X size={18} /></button>
+        </div>
+        <div style={{ padding: 20 }}>
+          <div style={{ fontSize: 13, color: 'var(--dash-text-secondary)', lineHeight: 1.5, marginBottom: 20 }}>
+            {children}
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', backgroundColor: 'var(--dash-bg-surface)', color: 'var(--dash-text-primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>
+              Cancel
+            </button>
+            {onAction && (
+              <button onClick={onAction} style={{ padding: '8px 16px', borderRadius: 'var(--dash-radius-button)', border: 'none', backgroundColor: 'var(--dash-accent)', color: '#FFFFFF', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>
+                {actionLabel || 'Confirm'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 /* ─── Empty State ────────────────────────────────────────────────── */
 interface EmptyStateProps {

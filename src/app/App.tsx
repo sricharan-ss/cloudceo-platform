@@ -15,7 +15,9 @@ import { AppShell } from './components/AppShell';
 import { ONBOARDING_STORAGE_KEY, ROUTE_PATHS, getBreadcrumbRouteIds, getRouteById, type AppRouteId } from './routes';
 import type { BreadcrumbItem } from './components/BreadcrumbNav';
 import { DateRangeProvider } from './context/DateRangeContext';
+import { AiProvider } from './context/AiContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ProviderProvider } from './context/ProviderContext';
 
 function useOnboardingState() {
   const [complete, setComplete] = useState<boolean>(() => {
@@ -97,9 +99,11 @@ export default function App() {
   const [onboardingComplete, setOnboardingComplete] = useOnboardingState();
 
   return (
-    <NotificationProvider>
-      <DateRangeProvider>
-        <Routes>
+    <ProviderProvider>
+      <NotificationProvider>
+        <DateRangeProvider>
+          <AiProvider>
+            <Routes>
           <Route
             path={ROUTE_PATHS.onboarding}
             element={
@@ -153,8 +157,10 @@ export default function App() {
           </Route>
 
           <Route path="*" element={<Navigate to={ROUTE_PATHS.dashboard} replace />} />
-        </Routes>
-      </DateRangeProvider>
-    </NotificationProvider>
+          </Routes>
+          </AiProvider>
+        </DateRangeProvider>
+      </NotificationProvider>
+    </ProviderProvider>
   );
 }

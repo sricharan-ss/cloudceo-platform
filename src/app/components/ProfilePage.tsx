@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { User, Lock, Monitor, Key, Bell, Cloud, Clock, ChevronRight, Check, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
 import { SectionHeader } from './SectionHeader';
+import { MockModal } from './SharedStates';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface ProfilePageProps {
@@ -25,22 +27,51 @@ const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
 export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
   const [activeSection, setActiveSection] = useState<Section>('profile');
   const [saved, setSaved] = useState(false);
+  const [modal, setModal] = useState<string | null>(null);
   const bp = useBreakpoint();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
   const isCompact = isMobile || isTablet;
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const handleSave = () => { setSaved(true); toast.success('Profile saved successfully'); setTimeout(() => setSaved(false), 2000); };
+  
+  const closeModal = () => setModal(null);
 
   const content = (
     <>
       {activeSection === 'profile'       && <ProfileSection  onSave={handleSave} saved={saved} isMobile={isMobile} />}
-      {activeSection === 'security'      && <SecuritySection />}
-      {activeSection === 'sessions'      && <SessionsSection isMobile={isMobile} />}
-      {activeSection === 'api'           && <ApiSection      isMobile={isMobile} />}
+      {activeSection === 'security'      && <SecuritySection onAction={(action) => setModal(action)} />}
+      {activeSection === 'sessions'      && <SessionsSection isMobile={isMobile} onAction={setModal} />}
+      {activeSection === 'api'           && <ApiSection      isMobile={isMobile} onAction={setModal} />}
       {activeSection === 'notifications' && <NotificationsSection />}
-      {activeSection === 'connections'   && <ConnectionsSection isMobile={isMobile} />}
+      {activeSection === 'connections'   && <ConnectionsSection isMobile={isMobile} onAction={setModal} />}
       {activeSection === 'activity'      && <ActivitySection />}
+      
+      {modal === 'avatar' && (
+        <MockModal title="Upload Avatar" actionLabel="Upload" onClose={closeModal} onAction={() => { toast.success('Avatar updated'); closeModal(); }}>
+          Select a new image file to upload as your profile picture. Max size: 2MB.
+        </MockModal>
+      )}
+      {modal === 'password' && (
+        <MockModal title="Change Password" actionLabel="Update Password" onClose={closeModal} onAction={() => { toast.success('Password updated'); closeModal(); }}>
+          Enter your current password and a new secure password.
+        </MockModal>
+      )}
+      {modal === 'add-key' && (
+        <MockModal title="Create API Key" actionLabel="Generate Key" onClose={closeModal} onAction={() => { toast.success('API key generated successfully'); closeModal(); }}>
+          Provide a name and select permissions for the new API key. The secret will only be shown once.
+        </MockModal>
+      )}
+      {modal === 'configure-cloud' && (
+        <MockModal title="Configure Connection" actionLabel="Save Configuration" onClose={closeModal} onAction={() => { toast.success('Configuration saved'); closeModal(); }}>
+          Modify the IAM role ARN, regions, or enabled features for this cloud connection.
+        </MockModal>
+      )}
+      {modal === 'mfa' && (
+        <MockModal title="Configure MFA" actionLabel="Enable MFA" onClose={closeModal} onAction={() => { toast.success('MFA enabled'); closeModal(); }}>
+          Scan the QR code with your authenticator app to enable Two-Factor Authentication.
+        </MockModal>
+      )}
     </>
   );
 
@@ -54,7 +85,7 @@ export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
         <div style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 'var(--dash-radius-card)', padding: isMobile ? '16px' : '20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{ width: isMobile ? 48 : 56, height: isMobile ? 48 : 56, borderRadius: '50%', backgroundColor: 'var(--dash-accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 16 : 20, fontWeight: 600, color: 'var(--dash-accent)' }}>JD</div>
-            <button style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'var(--dash-accent)', border: '2px solid var(--dash-bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <button onClick={() => setModal('avatar')} aria-label="Upload avatar" style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'var(--dash-accent)', border: '2px solid var(--dash-bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <Camera size={11} color="#FFFFFF" />
             </button>
           </div>
@@ -109,7 +140,7 @@ export function ProfilePage({ breadcrumbs }: ProfilePageProps) {
           <div style={{ padding: '20px 16px', borderBottom: '1px solid var(--dash-border)', textAlign: 'center' }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
               <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: 'var(--dash-accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600, color: 'var(--dash-accent)' }}>JD</div>
-              <button style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'var(--dash-accent)', border: '2px solid var(--dash-bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button onClick={() => setModal('avatar')} aria-label="Upload avatar" style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'var(--dash-accent)', border: '2px solid var(--dash-bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <Camera size={11} color="#FFFFFF" />
               </button>
             </div>
@@ -220,13 +251,13 @@ function ProfileSection({ onSave, saved, isMobile }: { onSave: () => void; saved
   );
 }
 
-function SecuritySection() {
+function SecuritySection({ onAction }: { onAction: (action: string) => void }) {
   return (
     <div>
       <SectionHeader title="Password & security" description="Manage your password and two-factor authentication." />
       {[
-        { title: 'Password', sub: 'Last changed 90 days ago', action: 'Change password', status: null },
-        { title: 'Two-factor authentication', sub: 'Add an extra layer of security', action: null, status: 'Enabled' as const },
+        { title: 'Password', sub: 'Last changed 90 days ago', action: 'password', status: null },
+        { title: 'Two-factor authentication', sub: 'Add an extra layer of security', action: 'mfa', status: null },
         { title: 'Single sign-on (SSO)', sub: 'Sign in with your identity provider', action: null, status: 'Not configured' as const },
       ].map((s, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '16px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
@@ -235,7 +266,7 @@ function SecuritySection() {
             <div style={{ fontSize: 12, color: 'var(--dash-text-muted)' }}>{s.sub}</div>
           </div>
           {s.action
-            ? <button style={{ padding: '7px 14px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>{s.action}</button>
+            ? <button onClick={() => onAction(s.action!)} style={{ padding: '7px 14px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>{s.title === 'Password' ? 'Change password' : 'Configure MFA'}</button>
             : <StatusBadge label={s.status!} severity={s.status === 'Enabled' ? 'success' : 'warning'} />
           }
         </div>
@@ -244,17 +275,17 @@ function SecuritySection() {
   );
 }
 
-function SessionsSection({ isMobile }: { isMobile: boolean }) {
-  const sessions = [
-    { device: 'Chrome on macOS',   location: 'New York, US',  ip: '192.0.2.1',    last: 'Active now',  current: true  },
-    { device: 'Safari on iPhone',  location: 'New York, US',  ip: '192.0.2.2',    last: '2h ago',      current: false },
-    { device: 'Chrome on Windows', location: 'Chicago, US',   ip: '203.0.113.1',  last: '3 days ago',  current: false },
-  ];
+function SessionsSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
+  const [sessions, setSessions] = useState([
+    { id: 1, device: 'Chrome on macOS',   location: 'New York, US',  ip: '192.0.2.1',    last: 'Active now',  current: true  },
+    { id: 2, device: 'Safari on iPhone',  location: 'New York, US',  ip: '192.0.2.2',    last: '2h ago',      current: false },
+    { id: 3, device: 'Chrome on Windows', location: 'Chicago, US',   ip: '203.0.113.1',  last: '3 days ago',  current: false },
+  ]);
   return (
     <div>
       <SectionHeader title="Active sessions" description="Manage devices currently signed in to your account." />
-      {sessions.map((s, i) => (
-        <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+      {sessions.map((s) => (
+        <div key={s.id} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {s.device}
@@ -264,32 +295,33 @@ function SessionsSection({ isMobile }: { isMobile: boolean }) {
               {isMobile ? s.last : `${s.location} · ${s.ip} · ${s.last}`}
             </div>
           </div>
-          {!s.current && <button style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500, flexShrink: 0 }}>Revoke</button>}
+          {!s.current && <button onClick={() => { setSessions(sessions.filter(sess => sess.id !== s.id)); toast.success('Session revoked'); }} style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500, flexShrink: 0 }}>Revoke</button>}
         </div>
       ))}
     </div>
   );
 }
 
-function ApiSection({ isMobile }: { isMobile: boolean }) {
+function ApiSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
+  const [keys, setKeys] = useState([
+    { id: 1, name: 'Production key',        prefix: 'cc_prod_', created: 'Jan 12, 2026', last: '2h ago',      scopes: 'read:billing, read:security' },
+    { id: 2, name: 'Analytics integration', prefix: 'cc_int_',  created: 'Mar 4, 2026',  last: '5 days ago',  scopes: 'read:billing' },
+  ]);
   return (
     <div>
       <SectionHeader title="API access" description="Personal API keys for programmatic access." />
-      {[
-        { name: 'Production key',        prefix: 'cc_prod_', created: 'Jan 12, 2026', last: '2h ago',      scopes: 'read:billing, read:security' },
-        { name: 'Analytics integration', prefix: 'cc_int_',  created: 'Mar 4, 2026',  last: '5 days ago',  scopes: 'read:billing' },
-      ].map((k, i) => (
-        <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10 }}>
+      {keys.map((k) => (
+        <div key={k.id} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>{k.name}</span>
-            <button style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>Revoke</button>
+            <button onClick={() => { setKeys(keys.filter(key => key.id !== k.id)); toast.success('API Key revoked'); }} style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>Revoke</button>
           </div>
           <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', fontFamily: 'ui-monospace, monospace', marginBottom: 4 }}>{k.prefix}••••••••••••</div>
           <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>Created {k.created} · Last used {k.last}</div>
           {!isMobile && <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginTop: 2 }}>Scopes: {k.scopes}</div>}
         </div>
       ))}
-      <button style={{ marginTop: 4, padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
+      <button onClick={() => onAction('add-key')} style={{ marginTop: 4, padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
         + Create API key
       </button>
     </div>
@@ -330,7 +362,7 @@ function NotificationsSection() {
   );
 }
 
-function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
+function ConnectionsSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
   return (
     <div>
       <SectionHeader title="Connected cloud accounts" description="Manage your AWS and Azure account connections." />
@@ -349,7 +381,7 @@ function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <StatusBadge label="Connected" severity="success" />
-            <button style={{ fontSize: 12, color: 'var(--dash-text-secondary)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>Configure</button>
+            <button onClick={() => onAction('configure-cloud')} style={{ fontSize: 12, color: 'var(--dash-text-secondary)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>Configure</button>
           </div>
         </div>
       ))}

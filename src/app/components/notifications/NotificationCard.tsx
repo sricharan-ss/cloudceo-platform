@@ -3,6 +3,7 @@ import { Shield, DollarSign, Sparkles, FileText, Cloud, Server, Bell, X } from '
 import { StatusBadge } from '../StatusBadge';
 import { CloudBadge } from '../CloudBadge';
 import type { Notification, Category } from '../../context/NotificationContext';
+import { useNavigate } from 'react-router';
 
 export const CAT_ICONS: Record<Category, React.ElementType> = {
   all: Bell, security: Shield, cost: DollarSign, ai: Sparkles,
@@ -26,6 +27,7 @@ export function NotificationCard({
   n, isSelected, showCheckbox, onToggleSelect, onMarkRead, onArchive, compact = false
 }: NotificationCardProps) {
   const Icon = CAT_ICONS[n.type] || Bell;
+  const navigate = useNavigate();
   
   return (
     <div
@@ -72,7 +74,14 @@ export function NotificationCard({
           )}
           {n.cloud && <CloudBadge variant={n.cloud} />}
           {n.action && (
-            <button onClick={e => { e.stopPropagation(); onMarkRead(); }}
+            <button onClick={e => {
+              e.stopPropagation();
+              onMarkRead();
+              if (n.type === 'security') navigate('/security');
+              else if (n.type === 'cost') navigate('/cost');
+              else if (n.type === 'reports') navigate('/reports');
+              else if (n.type === 'cloud' || n.type === 'infrastructure') navigate('/resources');
+            }}
               style={{ marginLeft: compact ? 0 : 'auto', padding: '3px 10px', borderRadius: 6, border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 11, fontWeight: 500, color: 'var(--dash-accent)', cursor: 'pointer', fontFamily: 'var(--dash-font)', transition: 'border-color 0.12s ease' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-accent)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border)'; }}>

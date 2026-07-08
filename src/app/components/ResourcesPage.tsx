@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { Server, Database, HardDrive, Globe, Search, RefreshCw, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Server, Database, HardDrive, Globe, Search, RefreshCw, MoreHorizontal, ChevronDown, ChevronUp, Download, Play, Square, Activity, ShieldAlert, Loader2, Shield, CheckCircle2, AlertCircle, XCircle, MoreVertical } from 'lucide-react';
+import { toast } from 'sonner';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
-import { EmptyState, EMPTY_STATES } from './SharedStates';
+import { EmptyState, EMPTY_STATES, MockModal, downloadMockFile } from './SharedStates';
 import { PageHeader } from './PageHeader';
 import { SummaryMetricCard } from './SummaryMetricCard';
 import { inputBaseStyle, primaryButtonStyle, secondaryButtonStyle } from './uiStyles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useDateRange } from '../context/DateRangeContext';
+import { useProvider } from '../context/ProviderContext';
+import { getProviderMocks } from '../mocks';
 import { PageSkeleton } from './Skeleton';
 
 interface ResourcesPageProps { breadcrumbs: BreadcrumbItem[] }
@@ -23,21 +26,6 @@ interface Resource {
   cpu: number; memory: number; owner: string; environment: 'production' | 'staging' | 'dev';
   health: 'healthy' | 'warning' | 'critical'; tags: string[];
 }
-
-const RESOURCES: Resource[] = [
-  { id: 'r1',  name: 'prod-ec2-api-01',    type: 'compute',  cloud: 'aws',   region: 'us-east-1', status: 'running', cost: '$312/mo', icon: Server,    cpu: 58, memory: 72, owner: 'Platform Team', environment: 'production', health: 'healthy', tags: ['api','critical'] },
-  { id: 'r2',  name: 'prod-ec2-api-02',    type: 'compute',  cloud: 'aws',   region: 'us-east-1', status: 'running', cost: '$312/mo', icon: Server,    cpu: 62, memory: 68, owner: 'Platform Team', environment: 'production', health: 'healthy', tags: ['api','critical'] },
-  { id: 'r3',  name: 'prod-ec2-worker-01', type: 'compute',  cloud: 'aws',   region: 'us-east-1', status: 'warning', cost: '$156/mo', icon: Server,    cpu: 3,  memory: 8,  owner: 'DevOps',        environment: 'production', health: 'warning', tags: ['worker','idle'] },
-  { id: 'r4',  name: 'rds-prod-primary',   type: 'database', cloud: 'aws',   region: 'us-east-1', status: 'running', cost: '$284/mo', icon: Database,  cpu: 12, memory: 34, owner: 'Data Team',     environment: 'production', health: 'healthy', tags: ['db','postgres'] },
-  { id: 'r5',  name: 'cloudceo-prod-assets',   type: 'storage',  cloud: 'aws',   region: 'us-east-1', status: 'warning', cost: '$48/mo',  icon: HardDrive, cpu: 0,  memory: 0,  owner: 'Platform Team', environment: 'production', health: 'warning', tags: ['public','static'] },
-  { id: 'r6',  name: 'cloudceo-logs',          type: 'storage',  cloud: 'aws',   region: 'us-east-1', status: 'running', cost: '$32/mo',  icon: HardDrive, cpu: 0,  memory: 0,  owner: 'DevOps',        environment: 'production', health: 'healthy', tags: ['logs'] },
-  { id: 'r7',  name: 'cloudceo-cdn',           type: 'network',  cloud: 'aws',   region: 'Global',    status: 'running', cost: '$88/mo',  icon: Globe,     cpu: 0,  memory: 0,  owner: 'Platform Team', environment: 'production', health: 'warning', tags: ['cdn','global'] },
-  { id: 'r8',  name: 'prod-vm-east-01',    type: 'compute',  cloud: 'azure', region: 'East US',   status: 'running', cost: '$248/mo', icon: Server,    cpu: 44, memory: 61, owner: 'Cloud Team',    environment: 'production', health: 'healthy', tags: ['vm','api'] },
-  { id: 'r9',  name: 'prod-vm-east-02',    type: 'compute',  cloud: 'azure', region: 'East US',   status: 'running', cost: '$248/mo', icon: Server,    cpu: 38, memory: 55, owner: 'Cloud Team',    environment: 'production', health: 'healthy', tags: ['vm','api'] },
-  { id: 'r10', name: 'cloudceo-cosmos-prod',   type: 'database', cloud: 'azure', region: 'East US',   status: 'running', cost: '$125/mo', icon: Database,  cpu: 8,  memory: 22, owner: 'Data Team',     environment: 'production', health: 'healthy', tags: ['db','nosql'] },
-  { id: 'r11', name: 'cloudceo-storage-prod',  type: 'storage',  cloud: 'azure', region: 'East US',   status: 'running', cost: '$72/mo',  icon: HardDrive, cpu: 0,  memory: 0,  owner: 'DevOps',        environment: 'production', health: 'healthy', tags: ['storage'] },
-  { id: 'r12', name: 'cloudceo-fn-api',        type: 'compute',  cloud: 'azure', region: 'East US',   status: 'stopped', cost: '$0/mo',   icon: Server,    cpu: 0,  memory: 0,  owner: 'Dev Team',      environment: 'dev',        health: 'critical', tags: ['functions','dev'] },
-];
 
 const STATUS_SEV: Record<string, 'success' | 'warning' | 'danger'> = { running: 'success', warning: 'warning', stopped: 'danger' };
 const ENV_COLORS: Record<string, { bg: string; color: string }> = {
@@ -59,19 +47,49 @@ function UsageBar({ value, color }: { value: number; color: string }) {
 }
 
 export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
+  const { provider } = useProvider();
+  const mocks = getProviderMocks(provider);
+  const RESOURCES = mocks.resources;
+
   const [search, setSearch]    = useState('');
-  const [cloud, setCloud]      = useState<CloudFilter>('all');
+  // Pre-filter cloud to match global provider
+  const defaultCloud: CloudFilter = provider === 'aws' ? 'aws' : provider === 'azure' ? 'azure' : 'all';
+  const [cloud, setCloud]      = useState<CloudFilter>(defaultCloud);
   const [type, setType]        = useState<TypeFilter>('all');
   const [status, setStatus]    = useState<StatusFilter>('all');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [modal, setModal] = useState<{ type: string, resourceId: string } | null>(null);
+  const [processingState, setProcessingState] = useState<Record<string, string>>({});
   const bp = useBreakpoint();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
   const { isLoading } = useDateRange();
 
+  // Close menu on click outside
+  useEffect(() => {
+    const handleGlobalClick = () => setOpenMenuId(null);
+    if (openMenuId) document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, [openMenuId]);
+
   if (isLoading) return <PageSkeleton />;
 
   const toggleExpanded = (id: string) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const handleAction = (resourceId: string, action: string) => {
+    setOpenMenuId(null);
+    if (action === 'metrics') {
+      setModal({ type: 'metrics', resourceId });
+      return;
+    }
+    setProcessingState(prev => ({ ...prev, [resourceId]: action === 'start' ? 'Starting...' : action === 'stop' ? 'Stopping...' : 'Scanning...' }));
+    setTimeout(() => {
+      setProcessingState(prev => { const next = { ...prev }; delete next[resourceId]; return next; });
+      toast.success(`Action ${action} completed on ${resourceId}`);
+    }, 2000);
+  };
 
   const filtered = RESOURCES.filter(r => {
     const matchSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.owner.toLowerCase().includes(search.toLowerCase()) || r.tags.some(t => t.includes(search.toLowerCase()));
@@ -89,10 +107,18 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
       <PageHeader
         title="Cloud Resources"
         description={<>AWS + Azure inventory {' ? '} Synced 2 min ago</>}
-        actions={<button style={{ ...secondaryButtonStyle, display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', color: 'var(--dash-text-secondary)', minHeight: undefined, transition: 'border-color 0.15s ease' }}
+        actions={<button aria-label="Export resource list" onClick={() => {
+          setExporting(true);
+          setTimeout(() => {
+            setExporting(false);
+            downloadMockFile('cloudceo-resources.csv', 'ResourceName,Cloud,Type,Status\nweb-server-prod-1,AWS,Compute,Running\n');
+          }, 1500);
+        }} style={{ ...secondaryButtonStyle, display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', color: 'var(--dash-text-secondary)', minHeight: undefined, transition: 'border-color 0.15s ease' }}
+          disabled={exporting}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border-strong)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--dash-border)'; }}>
-          <RefreshCw size={13} /> Sync now
+          {exporting ? <Loader2 size={13} className="spin" strokeWidth={1.5} /> : <Download size={13} strokeWidth={1.5} />} Export
+          <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
         </button>}
       />
 
@@ -161,7 +187,9 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
                     </div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                       <CloudBadge variant={r.cloud} />
-                      <StatusBadge label={r.status} severity={STATUS_SEV[r.status]} />
+                      {processingState[r.id] ? (
+                        <span style={{ fontSize: 11, color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}><Loader2 size={11} className="spin" /> {processingState[r.id]}</span>
+                      ) : <StatusBadge label={r.status} severity={STATUS_SEV[r.status]} />}
                       <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--dash-text-primary)', fontVariantNumeric: 'tabular-nums', marginLeft: 'auto' }}>{r.cost}</span>
                     </div>
                   </div>
@@ -199,13 +227,20 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
                         </div>
                       </>
                     )}
-                    {r.tags.length > 0 && (
-                      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                        {r.tags.map(tag => (
-                          <span key={tag} style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 999, backgroundColor: 'var(--dash-bg-page)', border: '1px solid var(--dash-border)', color: 'var(--dash-text-muted)' }}>{tag}</span>
-                        ))}
-                      </div>
-                    )}
+                    <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--dash-border-light)', display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                      {r.status === 'stopped' ? (
+                        <button onClick={(e) => { e.stopPropagation(); handleAction(r.id, 'start'); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--dash-bg-page)', border: '1px solid var(--dash-border)', borderRadius: 6, fontSize: 12, fontWeight: 500, color: 'var(--dash-text-primary)' }}>
+                          <Play size={12} color="var(--dash-success)" /> Start
+                        </button>
+                      ) : (
+                        <button onClick={(e) => { e.stopPropagation(); handleAction(r.id, 'stop'); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--dash-bg-page)', border: '1px solid var(--dash-border)', borderRadius: 6, fontSize: 12, fontWeight: 500, color: 'var(--dash-text-primary)' }}>
+                          <Square size={12} color="var(--dash-danger)" /> Stop
+                        </button>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); handleAction(r.id, 'metrics'); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--dash-bg-page)', border: '1px solid var(--dash-border)', borderRadius: 6, fontSize: 12, fontWeight: 500, color: 'var(--dash-text-primary)' }}>
+                        <Activity size={12} color="var(--dash-accent)" /> Metrics
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -241,7 +276,7 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
               {filtered.map((r, i) => {
                 const Icon = r.icon;
                 return (
-                  <tr key={r.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--dash-border-light)' : 'none', height: 56, cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                  <tr key={r.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--dash-border-light)' : 'none', height: 56, transition: 'background-color 0.1s ease' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--dash-bg-page)'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}>
                     <td style={{ padding: '0 14px' }}>
@@ -254,7 +289,11 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
                     </td>
                     <td style={{ padding: '0 14px' }}><CloudBadge variant={r.cloud} /></td>
                     <td style={{ padding: '0 14px', fontSize: 12, color: 'var(--dash-text-secondary)' }}>{r.region}</td>
-                    <td style={{ padding: '0 14px' }}><StatusBadge label={r.status} severity={STATUS_SEV[r.status]} /></td>
+                    <td style={{ padding: '0 14px' }}>
+                      {processingState[r.id] ? (
+                        <span style={{ fontSize: 12, color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}><Loader2 size={12} className="spin" /> {processingState[r.id]}</span>
+                      ) : <StatusBadge label={r.status} severity={STATUS_SEV[r.status]} />}
+                    </td>
                     {!isTablet && <>
                       <td style={{ padding: '0 14px', minWidth: 100 }}>
                         {r.type === 'compute' ? <UsageBar value={r.cpu} color={r.cpu > 80 ? 'var(--dash-danger)' : r.cpu > 60 ? 'var(--dash-warning)' : 'var(--dash-success)'} /> : <span style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>—</span>}
@@ -269,12 +308,31 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
                       <td style={{ padding: '0 14px' }}><StatusBadge label={r.health} severity={HEALTH_SEV[r.health]} /></td>
                     </>}
                     <td style={{ padding: '0 14px', fontSize: 13, fontWeight: 600, color: 'var(--dash-text-primary)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.cost}</td>
-                    <td style={{ padding: '0 14px' }}>
-                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 6, transition: 'color 0.12s ease' }}
+                    <td style={{ padding: '0 14px', position: 'relative' }}>
+                      <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === r.id ? null : r.id); }} aria-label="Resource actions" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 6, transition: 'color 0.12s ease' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--dash-text-primary)'; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--dash-text-muted)'; }}>
                         <MoreHorizontal size={15} strokeWidth={1.5} />
                       </button>
+                      {openMenuId === r.id && (
+                        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', right: 38, top: '50%', transform: 'translateY(-50%)', backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 10, padding: 4, display: 'flex', flexDirection: 'column', minWidth: 160 }}>
+                          {r.status === 'stopped' ? (
+                            <button onClick={() => handleAction(r.id, 'start')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--dash-text-primary)', textAlign: 'left', borderRadius: 4 }}>
+                              <Play size={13} color="var(--dash-success)" /> Start
+                            </button>
+                          ) : (
+                            <button onClick={() => handleAction(r.id, 'stop')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--dash-text-primary)', textAlign: 'left', borderRadius: 4 }}>
+                              <Square size={13} color="var(--dash-danger)" /> Stop
+                            </button>
+                          )}
+                          <button onClick={() => handleAction(r.id, 'metrics')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--dash-text-primary)', textAlign: 'left', borderRadius: 4 }}>
+                            <Activity size={13} color="var(--dash-accent)" /> View Metrics
+                          </button>
+                          <button onClick={() => handleAction(r.id, 'scan')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--dash-text-primary)', textAlign: 'left', borderRadius: 4 }}>
+                            <Shield size={13} color="var(--dash-warning)" /> Run Security Scan
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -282,6 +340,15 @@ export function ResourcesPage({ breadcrumbs }: ResourcesPageProps) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {modal?.type === 'metrics' && (
+        <MockModal title="Resource Metrics" actionLabel="Close" onClose={() => setModal(null)} onAction={() => setModal(null)}>
+          <div style={{ padding: 20, textAlign: 'center', color: 'var(--dash-text-secondary)', backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)' }}>
+            <Activity size={24} color="var(--dash-text-muted)" style={{ marginBottom: 10 }} />
+            <div>Mock CPU and Memory charts for {modal.resourceId} would render here.</div>
+          </div>
+        </MockModal>
       )}
     </div>
   );

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Globe, Cloud, Bell, Lock, Key, Users, CreditCard, Check, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
 import { SectionHeader } from './SectionHeader';
+import { MockModal } from './SharedStates';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface SettingsPageProps {
@@ -25,22 +27,56 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 export function SettingsPage({ breadcrumbs }: SettingsPageProps) {
   const [tab, setTab]   = useState<Tab>('general');
   const [saved, setSaved] = useState(false);
+  const [modal, setModal] = useState<string | null>(null);
   const bp = useBreakpoint();
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
   const isCompact = isMobile || isTablet;
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const handleSave = () => { setSaved(true); toast.success('Settings saved successfully'); setTimeout(() => setSaved(false), 2000); };
+  
+  const closeModal = () => setModal(null);
 
   const content = (
     <>
       {tab === 'general'       && <GeneralSection     onSave={handleSave} saved={saved} isMobile={isMobile} />}
-      {tab === 'connections'   && <ConnectionsSection isMobile={isMobile} />}
-      {tab === 'notifications' && <NotificationsSection />}
+      {tab === 'connections'   && <ConnectionsSection isMobile={isMobile} onAction={setModal} />}
+      {tab === 'notifications' && <NotificationsSection onAction={setModal} />}
       {tab === 'security'      && <SecuritySection />}
-      {tab === 'api-keys'      && <ApiKeysSection isMobile={isMobile} />}
-      {tab === 'team'          && <TeamSection isMobile={isMobile} />}
-      {tab === 'billing'       && <BillingSection />}
+      {tab === 'api-keys'      && <ApiKeysSection isMobile={isMobile} onAction={setModal} />}
+      {tab === 'team'          && <TeamSection isMobile={isMobile} onAction={setModal} />}
+      {tab === 'billing'       && <BillingSection onAction={setModal} />}
+      
+      {modal === 'configure-cloud' && (
+        <MockModal title="Configure Connection" actionLabel="Save Configuration" onClose={closeModal} onAction={() => { toast.success('Configuration saved'); closeModal(); }}>
+          Modify the IAM role ARN, regions, or enabled features for this cloud connection.
+        </MockModal>
+      )}
+      {modal === 'add-cloud' && (
+        <MockModal title="Add Cloud Connection" actionLabel="Connect" onClose={closeModal} onAction={() => { toast.success('Cloud connection added'); closeModal(); }}>
+          Select your provider (AWS, Azure, GCP) and provide the necessary read-only credentials to sync your environment.
+        </MockModal>
+      )}
+      {modal === 'notif-prefs' && (
+        <MockModal title="Notification Preferences" actionLabel="Save Preferences" onClose={closeModal} onAction={() => { toast.success('Preferences updated'); closeModal(); }}>
+          Configure which events trigger email or in-app notifications.
+        </MockModal>
+      )}
+      {modal === 'add-key' && (
+        <MockModal title="Create API Key" actionLabel="Generate Key" onClose={closeModal} onAction={() => { toast.success('API key generated successfully'); closeModal(); }}>
+          Provide a name and select permissions for the new API key. The secret will only be shown once.
+        </MockModal>
+      )}
+      {modal === 'invite-team' && (
+        <MockModal title="Invite Team Member" actionLabel="Send Invite" onClose={closeModal} onAction={() => { toast.success('Invitation sent'); closeModal(); }}>
+          Enter the email address and select the role for the new team member.
+        </MockModal>
+      )}
+      {modal === 'user-actions' && (
+        <MockModal title="Manage User" actionLabel="Save Changes" onClose={closeModal} onAction={() => { toast.success('User updated'); closeModal(); }}>
+          Change this user's role or remove them from the workspace.
+        </MockModal>
+      )}
     </>
   );
 
@@ -209,7 +245,7 @@ function GeneralSection({ onSave, saved, isMobile }: { onSave: () => void; saved
   );
 }
 
-function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
+function ConnectionsSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
   const providers = [
     { variant: 'aws' as const, name: 'Amazon Web Services', account: '123456789012', region: 'us-east-1', features: ['Cost Explorer', 'Billing', 'WAF'], sync: '2 min ago' },
     { variant: 'azure' as const, name: 'Microsoft Azure', account: 'cloudceo-prod-001', region: 'East US', features: ['Cost Management', 'WAF', 'Defender'], sync: '4 min ago' },
@@ -238,20 +274,20 @@ function ConnectionsSection({ isMobile }: { isMobile: boolean }) {
               <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: isMobile ? 'center' : 'flex-end', gap: 8 }}>
                 <StatusBadge label="Connected" severity="success" />
                 <span style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>Synced {c.sync}</span>
-                <button style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500 }}>Configure →</button>
+                <button onClick={() => onAction('configure-cloud')} style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500 }}>Configure →</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      <button style={{ padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
+      <button onClick={() => onAction('add-cloud')} style={{ padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
         + Add cloud account
       </button>
     </div>
   );
 }
 
-function NotificationsSection() {
+function NotificationsSection({ onAction }: { onAction: (action: string) => void }) {
   const channels = [
     { label: 'Email',   value: 'john.davidson@cloudceo.com', on: true  },
     { label: 'Slack',   value: '#cloud-alerts',              on: false },
@@ -268,7 +304,7 @@ function NotificationsSection() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {c.on ? <StatusBadge label="Active" severity="success" /> : <StatusBadge label="Inactive" severity="warning" />}
-            <button style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500 }}>Configure</button>
+            <button onClick={() => onAction('notif-prefs')} style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', fontWeight: 500 }}>Configure</button>
           </div>
         </div>
       ))}
@@ -327,33 +363,33 @@ function SecuritySection() {
   );
 }
 
-function ApiKeysSection({ isMobile }: { isMobile: boolean }) {
-  const keys = [
-    { name: 'Grafana integration', key: 'cc_grf_', created: 'Feb 14, 2026', last: '2h ago',     scopes: 'read:billing, read:security' },
-    { name: 'Terraform provider',  key: 'cc_tf_',  created: 'Mar 2, 2026',  last: '5 days ago', scopes: 'read:billing' },
-  ];
+function ApiKeysSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
+  const [keys, setKeys] = useState([
+    { id: 1, name: 'Grafana integration', key: 'cc_grf_', created: 'Feb 14, 2026', last: '2h ago',     scopes: 'read:billing, read:security' },
+    { id: 2, name: 'Terraform provider',  key: 'cc_tf_',  created: 'Mar 2, 2026',  last: '5 days ago', scopes: 'read:billing' },
+  ]);
   return (
     <div>
       <SectionHeader title="API keys" description="Workspace API keys for service-to-service integrations." />
       {keys.map((k, i) => (
-        <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10 }}>
+        <div key={k.id} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '14px 18px', marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>{k.name}</span>
-            <button style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', flexShrink: 0, marginLeft: 8 }}>Revoke</button>
+            <button onClick={() => { setKeys(keys.filter(key => key.id !== k.id)); toast.success('API Key revoked'); }} style={{ fontSize: 12, color: 'var(--dash-danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)', flexShrink: 0, marginLeft: 8 }}>Revoke</button>
           </div>
           <div style={{ fontSize: 12, color: 'var(--dash-text-muted)', fontFamily: 'ui-monospace, monospace', marginBottom: 4 }}>{k.key}••••••••••••</div>
           <div style={{ fontSize: 11, color: 'var(--dash-text-muted)' }}>Created {k.created} · Last used {k.last}</div>
           {!isMobile && <div style={{ fontSize: 11, color: 'var(--dash-text-muted)', marginTop: 2 }}>Scopes: {k.scopes}</div>}
         </div>
       ))}
-      <button style={{ marginTop: 4, padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
-        + Create API key
+      <button onClick={() => onAction('add-key')} style={{ marginTop: 4, padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
+        + Create new API key
       </button>
     </div>
   );
 }
 
-function TeamSection({ isMobile }: { isMobile: boolean }) {
+function TeamSection({ isMobile, onAction }: { isMobile: boolean; onAction: (action: string) => void }) {
   const members = [
     { name: 'John Davidson',  email: 'john@cloudceo.com',   role: 'Owner',  last: 'Active now' },
     { name: 'Sarah Chen',     email: 'sarah@cloudceo.com',  role: 'Admin',  last: '1h ago'     },
@@ -378,19 +414,20 @@ function TeamSection({ isMobile }: { isMobile: boolean }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               <StatusBadge label={m.role} severity={roleColors[m.role] || 'success'} />
-              {m.role !== 'Owner' && <button style={{ fontSize: 12, color: 'var(--dash-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>···</button>}
+              {m.role !== 'Owner' && <button onClick={() => onAction('user-actions')} aria-label="User actions" style={{ fontSize: 12, color: 'var(--dash-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>···</button>}
             </div>
           </div>
         ))}
       </div>
-      <button style={{ padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
+      <button onClick={() => onAction('invite-team')} style={{ padding: '9px 16px', borderRadius: 'var(--dash-radius-button)', border: '1px solid var(--dash-border)', background: 'var(--dash-bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--dash-text-primary)', cursor: 'pointer', fontFamily: 'var(--dash-font)', minHeight: 'var(--dash-touch-target)' }}>
         + Invite team member
       </button>
     </div>
   );
 }
 
-function BillingSection() {
+function BillingSection({ onAction }: { onAction: (action: string) => void }) {
+  const invoices = [{ id: 'INV-001', month: 'Jun 2026', amount: '$299.00' }, { id: 'INV-002', month: 'May 2026', amount: '$299.00' }, { id: 'INV-003', month: 'Apr 2026', amount: '$299.00' }];
   return (
     <div>
       <SectionHeader title="Plan & billing" description="Your CloudCEO subscription and payment details." />
@@ -411,9 +448,12 @@ function BillingSection() {
         <div key={month} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--dash-border-light)' }}>
           <span style={{ fontSize: 13, color: 'var(--dash-text-primary)' }}>{month}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', color: 'var(--dash-text-primary)' }}>{amount}</span>
-            <StatusBadge label="Paid" severity="success" />
-            <button style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>PDF</button>
+            <div style={{ flex: 1, minWidth: 150, fontSize: 13, color: 'var(--dash-text-primary)', fontWeight: 500 }}>{amount}</div>
+            <button onClick={() => {
+              import('./SharedStates').then(({ downloadMockFile }) => {
+                downloadMockFile(`Invoice-${month.replace(' ', '-')}.pdf`, 'Mock Invoice PDF Content');
+              });
+            }} style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>PDF</button>
           </div>
         </div>
       ))}

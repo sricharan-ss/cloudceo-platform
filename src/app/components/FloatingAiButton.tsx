@@ -5,8 +5,12 @@ import {
   AlertTriangle, DollarSign, BarChart2, Zap, FileText,
   TrendingUp, Check, Undo2, Server, Cloud,
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useDateRange } from '../context/DateRangeContext';
+import { useProvider } from '../context/ProviderContext';
+import { useAi } from '../context/AiContext';
+import { getProviderMocks } from '../mocks';
 import { PageSkeleton } from './Skeleton';
 
 /* ─── Types ──────────────────────────────────────────────────────── */
@@ -109,8 +113,8 @@ function CloudPill({ cloud }: { cloud: string }) {
 interface FloatingAiButtonProps { hidden?: boolean }
 
 export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
-  const [open, setOpen]             = useState(false);
-  const [tab, setTab]               = useState<AiTab>('assistant');
+  const { isAiPanelOpen: open, activeAiTab: tab, openAiPanel, closeAiPanel, setAiTab: setTab } = useAi();
+  const navigate = useNavigate();
   const [messages, setMessages]     = useState<Msg[]>([]);
   const [input, setInput]           = useState('');
   const [thinking, setThinking]     = useState(false);
@@ -118,6 +122,12 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
   const [recFilter, setRecFilter]   = useState<'all'|'cost'|'security'|'performance'>('all');
   const [applied, setApplied]       = useState<Map<string, Date>>(new Map());
   const [undoSet, setUndoSet]       = useState<Set<string>>(new Set());
+
+  const { provider } = useProvider();
+  const mocks = getProviderMocks(provider);
+  const CLOUD_SUMMARY = mocks.aiSummary;
+  const INSIGHT_CARDS = mocks.aiInsightCards;
+  const RECS = mocks.recommendations;
   const bottomRef                   = useRef<HTMLDivElement>(null);
   const bp                          = useBreakpoint();
   const isMobile                    = bp === 'mobile';
@@ -171,7 +181,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
   ];
 
   const panelStyle: React.CSSProperties = isMobile
-    ? { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--dash-bg-surface)', fontFamily: 'var(--dash-font)' }
+    ? { position: 'fixed', inset: 0, height: '100dvh', zIndex: 200, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--dash-bg-surface)', fontFamily: 'var(--dash-font)' }
     : { position: 'fixed', top: 0, right: 0, bottom: 0, width: 480, zIndex: 200, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--dash-bg-surface)', borderLeft: '1px solid var(--dash-border)', fontFamily: 'var(--dash-font)', boxShadow: '-4px 0 32px rgba(0,0,0,0.10)' };
 
   const openCount = RECS.filter(r => !applied.has(r.id)).length;
@@ -182,10 +192,10 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
       {/* ── Floating button ── */}
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => openAiPanel()}
           title="CloudCEO AI"
           style={{
-            position: 'fixed', bottom: isMobile ? 72 : 28, right: 20,
+            position: 'fixed', bottom: isMobile ? 70 : 24, right: isMobile ? 16 : 24,
             width: 52, height: 52, borderRadius: '50%',
             backgroundColor: 'var(--dash-accent)', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -201,7 +211,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
 
       {/* ── Dim overlay (desktop) ── */}
       {open && !isMobile && (
-        <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.18)', zIndex: 199 }} />
+        <div onClick={() => closeAiPanel()} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.18)', zIndex: 199 }} />
       )}
 
       {/* ── Panel ── */}
@@ -210,7 +220,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
           {/* Header */}
           <div style={{ height: 60, borderBottom: '1px solid var(--dash-border)', display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', flexShrink: 0 }}>
             {isMobile && (
-              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-secondary)', display: 'flex', padding: 6, borderRadius: 6 }}>
+              <button onClick={() => closeAiPanel()} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--dash-text-secondary)', borderRadius: 6, minWidth: 44, minHeight: 44, justifyContent: 'center' }}>
                 <ArrowLeft size={18} strokeWidth={1.5} />
               </button>
             )}
@@ -232,7 +242,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
               </button>
             )}
             {!isMobile && (
-              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-muted)', padding: 6, borderRadius: 6, display: 'flex', transition: 'color 0.12s ease' }}
+              <button onClick={() => closeAiPanel()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-text-muted)', padding: 6, borderRadius: 6, display: 'flex', transition: 'color 0.12s ease' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--dash-text-primary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--dash-text-muted)'; }}>
                 <X size={16} strokeWidth={1.5} />
@@ -269,7 +279,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
             ) : (
               <>
                 {tab === 'assistant'       && <AssistantTab messages={messages} input={input} setInput={setInput} send={send} thinking={thinking} streamText={streamText} bottomRef={bottomRef} />}
-                {tab === 'insights'        && <InsightsTab />}
+                {tab === 'insights'        && <InsightsTab onNavigate={(path) => { closeAiPanel(); navigate(path); }} />}
                 {tab === 'recommendations' && <RecommendationsTab visRecs={visRecs} applied={applied} undoSet={undoSet} recFilter={recFilter} setRecFilter={setRecFilter} onApply={applyRec} onUndo={undoRec} openCount={openCount} allCount={RECS.length} />}
                 {tab === 'history'         && <HistoryTab onLoad={(q) => { setTab('assistant'); send(q); }} />}
               </>
@@ -411,7 +421,7 @@ function AssistantTab({ messages, input, setInput, send, thinking, streamText, b
 }
 
 /* ─── Insights tab ───────────────────────────────────────────────── */
-function InsightsTab() {
+function InsightsTab({ onNavigate }: { onNavigate: (path: string) => void }) {
   const sev = (s: string) => s === 'danger' ? 'var(--dash-danger)' : s === 'warning' ? 'var(--dash-warning)' : 'var(--dash-success)';
   const sevBg = (s: string) => s === 'danger' ? 'var(--dash-danger-tint)' : s === 'warning' ? 'var(--dash-warning-tint)' : 'var(--dash-success-tint)';
 
@@ -446,7 +456,13 @@ function InsightsTab() {
       {INSIGHT_CARDS.map((c, i) => {
         const Icon = c.icon;
         return (
-          <div key={i} style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${sev(c.sev)}`, transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
+          <div key={i} 
+            onClick={() => {
+              if (c.cat === 'Security') onNavigate('/security');
+              else if (c.cat === 'Cost') onNavigate('/cost');
+              else onNavigate('/resources');
+            }}
+            style={{ backgroundColor: 'var(--dash-bg-surface)', border: '1px solid var(--dash-border)', borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${sev(c.sev)}`, transition: 'transform 0.15s ease, box-shadow 0.15s ease', cursor: 'pointer' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'translateX(2px)'; el.style.boxShadow = '0 2px 10px rgba(0,0,0,0.06)'; }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'none'; el.style.boxShadow = 'none'; }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>

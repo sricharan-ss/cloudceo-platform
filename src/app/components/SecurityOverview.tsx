@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   ChevronDown,
   Search,
   Download,
+  Filter,
+  ArrowUpDown,
+  Check,
+  X,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { CloudBadge } from "./CloudBadge";
 import { StatCard } from "./StatCard";
@@ -16,13 +22,15 @@ import {
 } from "./TopBlockedIPsTable";
 import {
   RecentSecurityEventsTable,
-  SECURITY_EVENTS,
 } from "./RecentSecurityEventsTable";
+import { ActivityLogTab } from "./ActivityLogTab";
 import { SecurityEventPanel } from "./SecurityEventPanel";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 import { useDateRange } from "../context/DateRangeContext";
+import { useProvider } from "../context/ProviderContext";
+import { getProviderMocks } from "../mocks";
 import { PageSkeleton } from "./Skeleton";
-import type { SecurityEvent } from "./RecentSecurityEventsTable";
+import type { SecurityEventMock } from "../mocks/types";
 
 type Tab = "overview" | "activity";
 
@@ -40,9 +48,21 @@ const MONO =
 export function SecurityOverview() {
   const [tab, setTab] = useState<Tab>("overview");
   const [selectedEvent, setSelectedEvent] =
-    useState<SecurityEvent | null>(null);
+    useState<SecurityEventMock | null>(null);
   const bp = useBreakpoint();
   const { isLoading } = useDateRange();
+  const { provider } = useProvider();
+  const mocks = getProviderMocks(provider);
+  const ATTACK_TYPES = mocks.attackTypes;
+  const secKpi = mocks.securityKpi;
+
+  useEffect(() => {
+    const handleNav = (e: CustomEvent<{ tab: Tab }>) => {
+      if (e.detail?.tab) setTab(e.detail.tab);
+    };
+    window.addEventListener('security-navigate', handleNav as EventListener);
+    return () => window.removeEventListener('security-navigate', handleNav as EventListener);
+  }, []);
 
   if (isLoading) return <PageSkeleton />;
 
@@ -53,13 +73,17 @@ export function SecurityOverview() {
           tab={tab}
           onTabChange={setTab}
           onSelectEvent={setSelectedEvent}
+          attackTypes={ATTACK_TYPES}
+          secKpi={secKpi}
         />
       ) : (
         <SecurityDesktopTablet
           tab={tab}
           onTabChange={setTab}
-          onSelectEvent={setSelectedEvent}
+          onSelectEvent={setSelectedEvent as any}
           isTablet={bp === "tablet"}
+          attackTypes={ATTACK_TYPES}
+          secKpi={secKpi}
         />
       )}
       <SecurityEventPanel
@@ -77,11 +101,15 @@ function SecurityDesktopTablet({
   onTabChange,
   onSelectEvent,
   isTablet,
+  attackTypes,
+  secKpi,
 }: {
   tab: Tab;
   onTabChange: (t: Tab) => void;
   onSelectEvent: (e: SecurityEvent) => void;
   isTablet: boolean;
+  attackTypes: { label: string; value: number }[];
+  secKpi: { totalRequests: string; totalRequestsTrend: string; blockedRequests: string; blockedRequestsTrend: string; blockRate: string; activeRules: number };
 }) {
   return (
     <div
@@ -134,31 +162,31 @@ function SecurityDesktopTablet({
           >
             <StatCard
               label="Total requests"
-              value="284,910"
+              value={secKpi.totalRequests}
               labelSize={isTablet ? 11 : 12}
               compact={isTablet}
               trend={{
                 direction: "up",
-                percentage: "12.3%",
+                percentage: secKpi.totalRequestsTrend,
                 label: isTablet ? "vs prev" : "vs previous period",
                 goodDirection: "up",
               }}
             />
             <StatCard
               label="Blocked requests"
-              value="1,284"
+              value={secKpi.blockedRequests}
               labelSize={isTablet ? 11 : 12}
               compact={isTablet}
               trend={{
                 direction: "up",
-                percentage: "8.6%",
+                percentage: secKpi.blockedRequestsTrend,
                 label: isTablet ? "vs prev" : "vs previous period",
                 goodDirection: "down",
               }}
             />
             <StatCard
               label="Block rate"
-              value="0.45%"
+              value={secKpi.blockRate}
               labelSize={isTablet ? 11 : 12}
               compact={isTablet}
               badge={
@@ -170,7 +198,7 @@ function SecurityDesktopTablet({
             />
             <StatCard
               label="Active rules"
-              value="18"
+              value={String(secKpi.activeRules)}
               labelSize={isTablet ? 11 : 12}
               compact={isTablet}
               badge={
@@ -194,7 +222,7 @@ function SecurityDesktopTablet({
             <RequestVolumeChart />
             <HorizontalBarChart
               title="Attack types"
-              items={ATTACK_TYPES}
+              items={attackTypes}
               labelWidth={120}
               barColor="#6B6588"
               valueFormatter={(v) => `${v} blocked`}
@@ -209,7 +237,12 @@ function SecurityDesktopTablet({
               gap: 20,
             }}
           >
-            <TopBlockedIPsTable />
+            <TopBlockedIPsTable onViewAll={() => {
+              onTabChange("activity");
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('security-search', { detail: { status: 'blocked' } }));
+              }, 50);
+            }} />
             <RecentSecurityEventsTable
               onSelectEvent={onSelectEvent}
             />
@@ -226,10 +259,14 @@ function SecurityMobile({
   tab,
   onTabChange,
   onSelectEvent,
+  attackTypes,
+  secKpi,
 }: {
   tab: Tab;
   onTabChange: (t: Tab) => void;
   onSelectEvent: (e: SecurityEvent) => void;
+  attackTypes: { label: string; value: number }[];
+  secKpi: { totalRequests: string; totalRequestsTrend: string; blockedRequests: string; blockedRequestsTrend: string; blockRate: string; activeRules: number };
 }) {
   return (
     <div
@@ -439,6 +476,25 @@ function SecurityMobile({
                 </div>
               ))}
             </div>
+            <button
+              onClick={() => {
+                onTabChange("activity");
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('security-search', { detail: { status: 'blocked' } }));
+                }, 50);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '12px 0 0 0',
+                fontSize: 14,
+                color: 'var(--dash-accent)',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              View all
+            </button>
           </section>
 
           {/* FIX 3 — Recent security events as stacked cards */}
@@ -516,576 +572,6 @@ function SecurityMobile({
         </>
       )}
     </div>
-  );
-}
-
-/* ─── Activity Log Tab ───────────────────────────────────────────── */
-
-const ALL_LOG_EVENTS: SecurityEvent[] = [
-  {
-    id: "l1",
-    description: "SQL injection attempt blocked",
-    severity: "danger",
-    time: "2h ago",
-    sourceIp: "203.0.113.42",
-    targetEndpoint: "/api/checkout",
-    ruleMatched: "AWS-AWSManagedRulesSQLiRuleSet",
-    country: "United States",
-    method: "POST",
-  },
-  {
-    id: "l2",
-    description: "XSS payload detected in query string",
-    severity: "danger",
-    time: "3h ago",
-    sourceIp: "198.51.100.17",
-    targetEndpoint: "/api/search",
-    ruleMatched: "AWS-AWSManagedRulesCommonRuleSet",
-    country: "Germany",
-    method: "GET",
-  },
-  {
-    id: "l3",
-    description: "Unusual traffic spike from single IP",
-    severity: "warning",
-    time: "5h ago",
-    sourceIp: "192.0.2.89",
-    targetEndpoint: "/api/login",
-    ruleMatched: "RateLimitRule-Global",
-    country: "Singapore",
-    method: "POST",
-  },
-  {
-    id: "l4",
-    description: "Bot pattern matched on /api/login",
-    severity: "warning",
-    time: "8h ago",
-    sourceIp: "203.0.113.105",
-    targetEndpoint: "/api/login",
-    ruleMatched: "AWS-AWSManagedRulesBotControlRuleSet",
-    country: "Brazil",
-    method: "POST",
-  },
-  {
-    id: "l5",
-    description: "Rate limit exceeded on /api/checkout",
-    severity: "warning",
-    time: "14h ago",
-    sourceIp: "198.51.100.63",
-    targetEndpoint: "/api/checkout",
-    ruleMatched: "RateLimitRule-Checkout",
-    country: "United States",
-    method: "POST",
-  },
-  {
-    id: "l6",
-    description: "Path traversal attempt blocked",
-    severity: "warning",
-    time: "1d ago",
-    sourceIp: "192.0.2.14",
-    targetEndpoint: "/api/files",
-    ruleMatched: "AWS-AWSManagedRulesCommonRuleSet",
-    country: "Germany",
-    method: "GET",
-  },
-  {
-    id: "l7",
-    description: "Credential stuffing attempt",
-    severity: "danger",
-    time: "1d ago",
-    sourceIp: "203.0.113.15",
-    targetEndpoint: "/api/login",
-    ruleMatched: "AWS-AWSManagedRulesBotControlRuleSet",
-    country: "Russia",
-    method: "POST",
-  },
-  {
-    id: "l8",
-    description: "Malformed request body detected",
-    severity: "warning",
-    time: "1d ago",
-    sourceIp: "198.51.100.44",
-    targetEndpoint: "/api/products",
-    ruleMatched: "AWS-AWSManagedRulesCommonRuleSet",
-    country: "France",
-    method: "PUT",
-  },
-  {
-    id: "l9",
-    description: "Scanner/probe pattern identified",
-    severity: "warning",
-    time: "2d ago",
-    sourceIp: "192.0.2.200",
-    targetEndpoint: "/.env",
-    ruleMatched: "AWS-AWSManagedRulesCommonRuleSet",
-    country: "Netherlands",
-    method: "GET",
-  },
-  {
-    id: "l10",
-    description: "SQL injection via header injection",
-    severity: "danger",
-    time: "2d ago",
-    sourceIp: "203.0.113.77",
-    targetEndpoint: "/api/users",
-    ruleMatched: "AWS-AWSManagedRulesSQLiRuleSet",
-    country: "China",
-    method: "GET",
-  },
-  {
-    id: "l11",
-    description: "Cross-site request forgery blocked",
-    severity: "warning",
-    time: "3d ago",
-    sourceIp: "198.51.100.88",
-    targetEndpoint: "/api/transfer",
-    ruleMatched: "AzureWAF-DefaultRuleSet-3.2",
-    country: "Canada",
-    method: "POST",
-  },
-  {
-    id: "l12",
-    description: "Directory enumeration attempt",
-    severity: "warning",
-    time: "3d ago",
-    sourceIp: "192.0.2.101",
-    targetEndpoint: "/admin",
-    ruleMatched: "AWS-AWSManagedRulesCommonRuleSet",
-    country: "India",
-    method: "GET",
-  },
-];
-
-const PAGE_SIZE = 8;
-
-function ActivityLogTab({
-  onSelectEvent,
-}: {
-  onSelectEvent: (e: SecurityEvent) => void;
-}) {
-  const [search, setSearch] = useState("");
-  const [severity, setSeverity] = useState<
-    "all" | "critical" | "warning"
-  >("all");
-  const [cloud, setCloud] = useState<"all" | "aws" | "azure">(
-    "all",
-  );
-  const [page, setPage] = useState(1);
-
-  const filtered = ALL_LOG_EVENTS.filter((e) => {
-    const matchSearch =
-      !search ||
-      e.description
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      e.sourceIp.includes(search);
-    const matchSev =
-      severity === "all" ||
-      (severity === "critical"
-        ? e.severity === "danger"
-        : e.severity === "warning");
-    const matchCloud =
-      cloud === "all" ||
-      (cloud === "aws"
-        ? e.ruleMatched.includes("AWS")
-        : e.ruleMatched.includes("Azure"));
-    return matchSearch && matchSev && matchCloud;
-  });
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const visible = filtered.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        fontFamily: "var(--dash-font)",
-      }}
-    >
-      {/* Toolbar */}
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            flex: 1,
-            minWidth: 200,
-          }}
-        >
-          <Search
-            size={13}
-            color="var(--dash-text-muted)"
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              pointerEvents: "none",
-            }}
-          />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search events, IPs…"
-            style={{
-              width: "100%",
-              height: 34,
-              padding: "0 10px 0 30px",
-              fontSize: 13,
-              fontFamily: "var(--dash-font)",
-              borderRadius: "var(--dash-radius-button)",
-              border: "1px solid var(--dash-border)",
-              backgroundColor: "var(--dash-bg-surface)",
-              color: "var(--dash-text-primary)",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
-        <FilterPill
-          label="All"
-          active={severity === "all"}
-          onClick={() => {
-            setSeverity("all");
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="Critical"
-          active={severity === "critical"}
-          onClick={() => {
-            setSeverity("critical");
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="Warning"
-          active={severity === "warning"}
-          onClick={() => {
-            setSeverity("warning");
-            setPage(1);
-          }}
-        />
-        <div
-          style={{
-            width: 1,
-            height: 20,
-            backgroundColor: "var(--dash-border)",
-          }}
-        />
-        <FilterPill
-          label="All clouds"
-          active={cloud === "all"}
-          onClick={() => {
-            setCloud("all");
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="AWS"
-          active={cloud === "aws"}
-          onClick={() => {
-            setCloud("aws");
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="Azure"
-          active={cloud === "azure"}
-          onClick={() => {
-            setCloud("azure");
-            setPage(1);
-          }}
-        />
-        <button
-          style={{
-            marginLeft: "auto",
-            padding: "6px 14px",
-            borderRadius: "var(--dash-radius-button)",
-            border: "1px solid var(--dash-border)",
-            background: "var(--dash-bg-surface)",
-            fontSize: 12,
-            fontWeight: 500,
-            color: "var(--dash-text-secondary)",
-            cursor: "pointer",
-            fontFamily: "var(--dash-font)",
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-          }}
-        >
-          <Download size={13} /> Export
-        </button>
-      </div>
-
-      {/* Count */}
-      <div
-        style={{
-          fontSize: 12,
-          color: "var(--dash-text-muted)",
-        }}
-      >
-        {filtered.length} event
-        {filtered.length !== 1 ? "s" : ""} · Page {page} of{" "}
-        {Math.max(1, totalPages)}
-      </div>
-
-      {/* Table */}
-      <div
-        style={{
-          backgroundColor: "var(--dash-bg-surface)",
-          border: "1px solid var(--dash-border)",
-          borderRadius: "var(--dash-radius-card)",
-          overflow: "hidden",
-        }}
-      >
-        <table
-          style={{ width: "100%", borderCollapse: "collapse" }}
-        >
-          <thead>
-            <tr
-              style={{
-                borderBottom: "1px solid var(--dash-border)",
-              }}
-            >
-              {[
-                "Time",
-                "Event",
-                "Severity",
-                "Source IP",
-                "Endpoint",
-                "Cloud",
-              ].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: "0 16px",
-                    height: 40,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "var(--dash-text-muted)",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    textAlign: "left",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((event, i) => (
-              <ActivityLogRow
-                key={event.id}
-                event={event}
-                isLast={i === visible.length - 1}
-                onClick={() => onSelectEvent(event)}
-              />
-            ))}
-            {visible.length === 0 && (
-              <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    padding: "32px 16px",
-                    textAlign: "center",
-                    color: "var(--dash-text-muted)",
-                    fontSize: 13,
-                  }}
-                >
-                  No events match your filters
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            justifyContent: "flex-end",
-          }}
-        >
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "var(--dash-radius-button)",
-              border: "1px solid var(--dash-border)",
-              background: "var(--dash-bg-surface)",
-              fontSize: 13,
-              cursor: page === 1 ? "not-allowed" : "pointer",
-              color: "var(--dash-text-secondary)",
-              opacity: page === 1 ? 0.4 : 1,
-              fontFamily: "var(--dash-font)",
-            }}
-          >
-            ← Prev
-          </button>
-          {Array.from(
-            { length: totalPages },
-            (_, i) => i + 1,
-          ).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "var(--dash-radius-button)",
-                border: "1px solid var(--dash-border)",
-                background:
-                  p === page
-                    ? "var(--dash-accent)"
-                    : "var(--dash-bg-surface)",
-                color:
-                  p === page
-                    ? "#FFFFFF"
-                    : "var(--dash-text-primary)",
-                fontSize: 13,
-                cursor: "pointer",
-                fontFamily: "var(--dash-font)",
-              }}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            onClick={() =>
-              setPage((p) => Math.min(totalPages, p + 1))
-            }
-            disabled={page === totalPages}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "var(--dash-radius-button)",
-              border: "1px solid var(--dash-border)",
-              background: "var(--dash-bg-surface)",
-              fontSize: 13,
-              cursor:
-                page === totalPages ? "not-allowed" : "pointer",
-              color: "var(--dash-text-secondary)",
-              opacity: page === totalPages ? 0.4 : 1,
-              fontFamily: "var(--dash-font)",
-            }}
-          >
-            Next →
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ActivityLogRow({
-  event,
-  isLast,
-  onClick,
-}: {
-  event: SecurityEvent;
-  isLast: boolean;
-  onClick: () => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const isAws = event.ruleMatched.includes("AWS");
-  return (
-    <tr
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        borderBottom: isLast
-          ? "none"
-          : "1px solid var(--dash-border-light)",
-        backgroundColor: hovered
-          ? "var(--dash-bg-page)"
-          : "transparent",
-        cursor: "pointer",
-        height: 44,
-      }}
-    >
-      <td
-        style={{
-          padding: "0 16px",
-          fontSize: 12,
-          color: "var(--dash-text-muted)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {event.time}
-      </td>
-      <td
-        style={{
-          padding: "0 16px",
-          fontSize: 13,
-          color: "var(--dash-text-primary)",
-          maxWidth: 260,
-        }}
-      >
-        <span
-          style={{
-            display: "block",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {event.description}
-        </span>
-      </td>
-      <td style={{ padding: "0 16px" }}>
-        <StatusBadge
-          label={
-            event.severity === "danger" ? "Critical" : "Warning"
-          }
-          severity={event.severity}
-        />
-      </td>
-      <td
-        style={{
-          padding: "0 16px",
-          fontSize: 12,
-          color: "var(--dash-text-primary)",
-          fontFamily: MONO,
-        }}
-      >
-        {event.sourceIp}
-      </td>
-      <td
-        style={{
-          padding: "0 16px",
-          fontSize: 12,
-          color: "var(--dash-text-secondary)",
-          fontFamily: MONO,
-        }}
-      >
-        {event.targetEndpoint}
-      </td>
-      <td style={{ padding: "0 16px" }}>
-        <CloudBadge variant={isAws ? "aws" : "azure"} />
-      </td>
-    </tr>
   );
 }
 
