@@ -1,6 +1,6 @@
 import { badgeBaseStyle } from './uiStyles';
 
-type Severity = 'success' | 'warning' | 'danger' | 'info';
+type Severity = 'success' | 'warning' | 'danger' | 'info' | string;
 
 const COLORS: Record<Severity, { bg: string; text: string; dot: string }> = {
   success: { bg: 'var(--dash-success-tint)', text: 'var(--dash-success-text)', dot: 'var(--dash-success)' },
@@ -9,13 +9,15 @@ const COLORS: Record<Severity, { bg: string; text: string; dot: string }> = {
   info:    { bg: 'var(--dash-info-tint)', text: 'var(--dash-info-text)', dot: 'var(--dash-info)' },
 };
 
+const FALLBACK = { bg: 'var(--dash-bg-surface)', text: 'var(--dash-text-secondary)', dot: 'var(--dash-border)' };
+
 interface StatusBadgeProps {
   label: string;
   severity: Severity;
 }
 
 export function StatusBadge({ label, severity }: StatusBadgeProps) {
-  const c = COLORS[severity];
+  const c = COLORS[severity] || FALLBACK;
   return (
     <span
       style={{

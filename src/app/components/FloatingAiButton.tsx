@@ -271,9 +271,9 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
           </div>
 
           {/* Body */}
-          <div style={{ flex: 1, overflowY: 'auto', backgroundColor: 'var(--dash-bg-page)', position: 'relative' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'hidden', backgroundColor: 'var(--dash-bg-page)', position: 'relative' }}>
             {isLoading ? (
-              <div style={{ padding: 24 }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
                 <PageSkeleton />
               </div>
             ) : (
@@ -295,7 +295,7 @@ export function FloatingAiButton({ hidden = false }: FloatingAiButtonProps) {
 function AssistantTab({ messages, input, setInput, send, thinking, streamText, bottomRef }: {
   messages: Msg[]; input: string; setInput: (v: string) => void;
   send: (t: string) => void; thinking: boolean; streamText: string;
-  bottomRef: React.RefObject<HTMLDivElement>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const hasMessages = messages.length > 0;
 
@@ -426,7 +426,7 @@ function InsightsTab({ onNavigate }: { onNavigate: (path: string) => void }) {
   const sevBg = (s: string) => s === 'danger' ? 'var(--dash-danger-tint)' : s === 'warning' ? 'var(--dash-warning-tint)' : 'var(--dash-success-tint)';
 
   return (
-    <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Executive summary */}
       <div style={{ backgroundColor: 'var(--dash-accent-tint)', border: '1px solid var(--dash-accent)25', borderRadius: 10, padding: '13px 15px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -492,7 +492,7 @@ function RecommendationsTab({ visRecs, applied, undoSet, recFilter, setRecFilter
   const FILTERS = ['all', 'cost', 'security', 'performance'] as const;
 
   return (
-    <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Summary */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
         <div>
@@ -592,7 +592,7 @@ function HistoryTab({ onLoad }: { onLoad: (q: string) => void }) {
   };
 
   return (
-    <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 18 }}>
       {HISTORY_GROUPS.map((group, gi) => (
         <div key={gi}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>{group.label}</div>

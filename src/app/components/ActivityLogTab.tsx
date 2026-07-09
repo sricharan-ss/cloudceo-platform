@@ -373,7 +373,7 @@ function ActivityLogRow({ event, isLast, onClick, isMobile }: { event: SecurityE
       <tr onClick={onClick} style={{ borderBottom: isLast ? 'none' : '1px solid var(--dash-border-light)', backgroundColor: 'transparent', cursor: 'pointer' }}>
         <td style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <StatusBadge label={event.severity === 'critical' ? 'Critical' : event.severity === 'warning' ? 'Warning' : 'Info'} severity={event.severity as any} />
+            <StatusBadge label={event.severity === 'critical' ? 'Critical' : event.severity === 'warning' ? 'Warning' : 'Info'} severity={event.severity === 'critical' ? 'danger' : event.severity === 'warning' ? 'warning' : 'info'} />
             <span style={{ fontSize: 12, color: 'var(--dash-text-muted)' }}>{event.time}</span>
           </div>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)' }}>{event.detail}</div>
@@ -402,7 +402,7 @@ function ActivityLogRow({ event, isLast, onClick, isMobile }: { event: SecurityE
         <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.detail}</span>
       </td>
       <td style={{ padding: '0 16px' }}>
-        <StatusBadge label={event.severity === 'critical' ? 'Critical' : event.severity === 'warning' ? 'Warning' : 'Info'} severity={event.severity as any} />
+        <StatusBadge label={event.severity === 'critical' ? 'Critical' : event.severity === 'warning' ? 'Warning' : 'Info'} severity={event.severity === 'critical' ? 'danger' : event.severity === 'warning' ? 'warning' : 'info'} />
       </td>
       <td style={{ padding: '0 16px', fontSize: 12, color: 'var(--dash-text-secondary)', whiteSpace: 'nowrap' }}>{event.service || '—'}</td>
       <td style={{ padding: '0 16px', fontSize: 12, color: 'var(--dash-text-primary)', fontFamily: MONO, maxWidth: 150 }}>
