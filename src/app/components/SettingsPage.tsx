@@ -5,7 +5,7 @@ import { BreadcrumbNav, type BreadcrumbItem } from './BreadcrumbNav';
 import { StatusBadge } from './StatusBadge';
 import { CloudBadge } from './CloudBadge';
 import { SectionHeader } from './SectionHeader';
-import { MockModal } from './SharedStates';
+import { MockModal, downloadMockFile } from './SharedStates';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface SettingsPageProps {
@@ -449,11 +449,7 @@ function BillingSection({ onAction }: { onAction: (action: string) => void }) {
           <span style={{ fontSize: 13, color: 'var(--dash-text-primary)' }}>{month}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1, minWidth: 150, fontSize: 13, color: 'var(--dash-text-primary)', fontWeight: 500 }}>{amount}</div>
-            <button onClick={() => {
-              import('./SharedStates').then(({ downloadMockFile }) => {
-                downloadMockFile(`Invoice-${month.replace(' ', '-')}.pdf`, 'Mock Invoice PDF Content');
-              });
-            }} style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>PDF</button>
+            <button onClick={() => downloadMockFile(`Invoice-${month.replace(' ', '-')}.pdf`, 'Mock Invoice PDF Content')} style={{ fontSize: 12, color: 'var(--dash-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--dash-font)' }}>PDF</button>
           </div>
         </div>
       ))}

@@ -8,7 +8,7 @@ import { FloatingAiButton } from './FloatingAiButton';
 import { Toaster } from 'sonner';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getPageTitle, ROUTE_PATHS } from '../routes';
-import { DateRangeProvider } from '../context/DateRangeContext';
+
 import { NotificationProvider, useNotifications } from '../context/NotificationContext';
 
 interface AppShellProps {
@@ -17,7 +17,7 @@ interface AppShellProps {
 
 export function AppShell({ onSignOut }: AppShellProps) {
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [dateRange, setDateRange] = useState('This month');
+
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
