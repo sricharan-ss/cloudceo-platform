@@ -7,3 +7,435 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum CloudProviderType {
+  AWS
+  AZURE
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
+  BILLING_ADMIN
+  SECURITY_ADMIN
+}
+
+enum ReportStatus {
+  DRAFT
+  QUEUED
+  GENERATING
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum ResourceStatus {
+  RUNNING
+  STOPPED
+  TERMINATED
+  ACTIVE
+  INACTIVE
+  UNKNOWN
+}
+
+enum NotificationType {
+  BILLING
+  SECURITY
+  RESOURCE
+  SYNC
+  SYSTEM
+  REPORT
+  AI
+}
+
+enum NotificationSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityStatus {
+  OPEN
+  ACKNOWLEDGED
+  INVESTIGATING
+  RESOLVED
+  DISMISSED
+}
+
+enum SyncStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum AIMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  SYNC
+  EXPORT
+  LOGIN_FAILED
+  TOKEN_REFRESH
+  SYSTEM
+}
+
+model Organization {
+  id               String            @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String            @unique
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  roles            Role[]
+  users            User[]
+  cloudProviders   CloudProvider[]
+  cloudAccounts    CloudAccount[]
+  billingSnapshots BillingSnapshot[]
+  resources        Resource[]
+  securityEvents   SecurityEvent[]
+  notifications    Notification[]
+  reports          Report[]
+  aiConversations  AIConversation[]
+  auditLogs        AuditLog[]
+  syncJobs         SyncJob[]
+  refreshTokens    RefreshToken[]
+  loginAttempts    LoginAttempt[]
+
+  @@index([deletedAt])
+}
+
+model Role {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  name           UserRole
+  description    String?
+  permissions    Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users          User[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, deletedAt])
+}
+
+model User {
+  id              String           @id @default(uuid()) @db.Uuid
+  organizationId  String           @db.Uuid
+  roleId          String           @db.Uuid
+  email           String
+  passwordHash    String?
+  firstName       String?
+  lastName        String?
+  displayName     String?
+  avatarUrl       String?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role            Role             @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  notifications   Notification[]
+  reports         Report[]
+  aiConversations AIConversation[]
+  aiMessages      AIMessage[]
+  auditLogs       AuditLog[]
+  syncJobs        SyncJob[]
+  refreshTokens   RefreshToken[]
+  loginAttempts   LoginAttempt[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId, roleId])
+  @@index([organizationId, deletedAt])
+}
+
+model CloudProvider {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  type           CloudProviderType
+  displayName    String
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccounts  CloudAccount[]
+
+  @@unique([organizationId, type, displayName])
+  @@index([organizationId, type])
+  @@index([organizationId, deletedAt])
+}
+
+model CloudAccount {
+  id               String            @id @default(uuid()) @db.Uuid
+  organizationId   String            @db.Uuid
+  cloudProviderId  String            @db.Uuid
+  credentialRef    String
+  accountId        String?
+  subscriptionId   String?
+  provider         CloudProviderType
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudProvider    CloudProvider     @relation(fields: [cloudProviderId], references: [id], onDelete: Restrict)
+  billingSnapshots BillingSnapshot[]
+  resources        Resource[]
+  securityEvents   SecurityEvent[]
+  syncJobs         SyncJob[]
+
+  @@unique([organizationId, provider, accountId])
+  @@unique([organizationId, provider, subscriptionId])
+  @@index([organizationId, provider])
+  @@index([cloudProviderId])
+  @@index([organizationId, deletedAt])
+}
+
+model BillingSnapshot {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  cloudAccountId String            @db.Uuid
+  provider       CloudProviderType
+  periodStart    DateTime
+  periodEnd      DateTime
+  currency       String            @default("USD")
+  totalCost      Decimal           @db.Decimal(18, 6)
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount   CloudAccount      @relation(fields: [cloudAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([cloudAccountId, periodStart, periodEnd])
+  @@index([organizationId, provider, periodStart])
+  @@index([organizationId, periodStart, periodEnd])
+}
+
+model Resource {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  cloudAccountId String            @db.Uuid
+  provider       CloudProviderType
+  externalId     String
+  name           String
+  type           String
+  region         String?
+  status         ResourceStatus    @default(UNKNOWN)
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount   CloudAccount      @relation(fields: [cloudAccountId], references: [id], onDelete: Cascade)
+  securityEvents SecurityEvent[]
+
+  @@unique([cloudAccountId, externalId])
+  @@index([organizationId, provider, type])
+  @@index([organizationId, status])
+  @@index([organizationId, region])
+  @@index([organizationId, deletedAt])
+}
+
+model SecurityEvent {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  cloudAccountId String            @db.Uuid
+  resourceId     String?           @db.Uuid
+  provider       CloudProviderType
+  externalId     String?
+  title          String
+  description    String?
+  severity       SecuritySeverity
+  status         SecurityStatus    @default(OPEN)
+  occurredAt     DateTime
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount   CloudAccount      @relation(fields: [cloudAccountId], references: [id], onDelete: Cascade)
+  resource       Resource?         @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@unique([cloudAccountId, externalId])
+  @@index([organizationId, severity, status])
+  @@index([organizationId, provider, occurredAt])
+  @@index([resourceId])
+  @@index([organizationId, deletedAt])
+}
+
+model Notification {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @db.Uuid
+  userId         String?              @db.Uuid
+  type           NotificationType
+  severity       NotificationSeverity @default(INFO)
+  title          String
+  message        String
+  readAt         DateTime?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, type, severity])
+  @@index([userId, readAt])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+}
+
+model Report {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  createdById    String?      @db.Uuid
+  title          String
+  status         ReportStatus @default(DRAFT)
+  parameters     Json?
+  artifactRef    String?
+  generatedAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status])
+  @@index([createdById, createdAt])
+  @@index([organizationId, deletedAt])
+}
+
+model AIConversation {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String?      @db.Uuid
+  title          String?
+  context        Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages       AIMessage[]
+
+  @@index([organizationId, userId])
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, deletedAt])
+}
+
+model AIMessage {
+  id             String         @id @default(uuid()) @db.Uuid
+  conversationId String         @db.Uuid
+  userId         String?        @db.Uuid
+  role           AIMessageRole
+  content        String
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String?      @db.Uuid
+  action         AuditAction
+  entityType     String
+  entityId       String?
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, entityId])
+  @@index([userId, createdAt])
+}
+
+model SyncJob {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  cloudAccountId String?            @db.Uuid
+  createdById    String?            @db.Uuid
+  provider       CloudProviderType?
+  status         SyncStatus         @default(PENDING)
+  jobType        String
+  startedAt      DateTime?
+  completedAt    DateTime?
+  errorMessage   String?
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount   CloudAccount?      @relation(fields: [cloudAccountId], references: [id], onDelete: SetNull)
+  createdBy      User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([cloudAccountId, status])
+  @@index([createdById, createdAt])
+}
+
+model RefreshToken {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String       @db.Uuid
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([organizationId, expiresAt])
+}
+
+model LoginAttempt {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String?       @db.Uuid
+  userId         String?       @db.Uuid
+  email          String
+  success        Boolean       @default(false)
+  failureReason  String?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, createdAt])
+  @@index([organizationId, success, createdAt])
+  @@index([userId, createdAt])
+}
