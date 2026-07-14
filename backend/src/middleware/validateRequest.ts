@@ -17,3 +17,18 @@ export const validateBody = (schema: ZodSchema): RequestHandler => {
     next();
   };
 };
+
+export const validateQuery = (schema: ZodSchema): RequestHandler => {
+  return (req, _res, next) => {
+    const result = schema.safeParse(req.query);
+
+    if (!result.success) {
+      const message = result.error.issues.map((issue) => issue.message).join(', ');
+      next(new AppError(message || 'Invalid query parameters', 400));
+      return;
+    }
+
+    req.query = result.data as typeof req.query;
+    next();
+  };
+};
