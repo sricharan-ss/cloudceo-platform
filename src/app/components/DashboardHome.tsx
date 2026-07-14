@@ -110,7 +110,14 @@ function AiInsightsWidget({ insights }: { insights: { icon: React.ElementType; t
 
 function QuickActionsPanel({ onNavigate, isMobile }: { onNavigate?: (s: AppRouteId) => void; isMobile?: boolean }) {
   const { openAiPanel } = useAi();
-  const QUICK_ACTIONS = [
+  const QUICK_ACTIONS: Array<{
+    icon: React.ComponentType<any>;
+    label: string;
+    desc: string;
+    accent: string;
+    screen: AppRouteId | null;
+    aiTab?: 'assistant' | 'recommendations';
+  }> = [
     { icon: FileText,  label: 'Generate report',   desc: 'AI cloud analysis',  accent: 'var(--dash-accent)',   screen: 'reports'   as AppRouteId },
     { icon: Sparkles,  label: 'Open AI assistant', desc: 'Ask anything',       accent: 'var(--dash-accent)',   screen: null, aiTab: 'assistant' as const },
     { icon: Shield,    label: 'Security risks',    desc: '2 critical items',   accent: 'var(--dash-danger)',   screen: 'security'  as AppRouteId },

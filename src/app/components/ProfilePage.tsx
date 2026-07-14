@@ -252,14 +252,20 @@ function ProfileSection({ onSave, saved, isMobile }: { onSave: () => void; saved
 }
 
 function SecuritySection({ onAction }: { onAction: (action: string) => void }) {
+  const securityItems: Array<{
+    title: string;
+    sub: string;
+    action: string | null;
+    status: string | null;
+  }> = [
+    { title: 'Password', sub: 'Last changed 90 days ago', action: 'password', status: null },
+    { title: 'Two-factor authentication', sub: 'Add an extra layer of security', action: 'mfa', status: null },
+    { title: 'Single sign-on (SSO)', sub: 'Sign in with your identity provider', action: null, status: 'Not configured' },
+  ];
   return (
     <div>
       <SectionHeader title="Password & security" description="Manage your password and two-factor authentication." />
-      {[
-        { title: 'Password', sub: 'Last changed 90 days ago', action: 'password', status: null },
-        { title: 'Two-factor authentication', sub: 'Add an extra layer of security', action: 'mfa', status: null },
-        { title: 'Single sign-on (SSO)', sub: 'Sign in with your identity provider', action: null, status: 'Not configured' as const },
-      ].map((s, i) => (
+      {securityItems.map((s, i) => (
         <div key={i} style={{ backgroundColor: 'var(--dash-bg-page)', borderRadius: 8, border: '1px solid var(--dash-border)', padding: '16px 18px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--dash-text-primary)', marginBottom: 3 }}>{s.title}</div>

@@ -75,6 +75,7 @@ export function SecurityOverview() {
           onSelectEvent={setSelectedEvent}
           attackTypes={ATTACK_TYPES}
           secKpi={secKpi}
+          securityEvents={mocks.securityEvents}
         />
       ) : (
         <SecurityDesktopTablet
@@ -106,7 +107,7 @@ function SecurityDesktopTablet({
 }: {
   tab: Tab;
   onTabChange: (t: Tab) => void;
-  onSelectEvent: (e: SecurityEvent) => void;
+  onSelectEvent: (e: SecurityEventMock) => void;
   isTablet: boolean;
   attackTypes: { label: string; value: number }[];
   secKpi: { totalRequests: string; totalRequestsTrend: string; blockedRequests: string; blockedRequestsTrend: string; blockRate: string; activeRules: number };
@@ -261,12 +262,14 @@ function SecurityMobile({
   onSelectEvent,
   attackTypes,
   secKpi,
+  securityEvents,
 }: {
   tab: Tab;
   onTabChange: (t: Tab) => void;
-  onSelectEvent: (e: SecurityEvent) => void;
+  onSelectEvent: (e: SecurityEventMock) => void;
   attackTypes: { label: string; value: number }[];
   secKpi: { totalRequests: string; totalRequestsTrend: string; blockedRequests: string; blockedRequestsTrend: string; blockRate: string; activeRules: number };
+  securityEvents: SecurityEventMock[];
 }) {
   return (
     <div
@@ -517,7 +520,7 @@ function SecurityMobile({
                 gap: "var(--dash-space-sm)",
               }}
             >
-              {SECURITY_EVENTS.map((event) => (
+              {securityEvents.slice(0, 5).map((event) => (
                 <div
                   key={event.id}
                   onClick={() => onSelectEvent(event)}
@@ -539,7 +542,7 @@ function SecurityMobile({
                       marginBottom: 6,
                     }}
                   >
-                    {event.description}
+                    {event.detail}
                   </div>
                   <div
                     style={{
@@ -550,11 +553,19 @@ function SecurityMobile({
                   >
                     <StatusBadge
                       label={
-                        event.severity === "danger"
+                        event.severity === "critical"
                           ? "Critical"
-                          : "Warning"
+                          : event.severity === "warning"
+                          ? "Warning"
+                          : "Info"
                       }
-                      severity={event.severity}
+                      severity={
+                        event.severity === "critical"
+                          ? "danger"
+                          : event.severity === "warning"
+                          ? "warning"
+                          : "info"
+                      }
                     />
                     <span
                       style={{
