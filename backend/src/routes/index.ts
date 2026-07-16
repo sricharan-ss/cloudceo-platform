@@ -8,6 +8,7 @@ import { cloudAccountRoutes } from './cloudAccountRoutes.js';
 import { dashboardRoutes } from './dashboardRoutes.js';
 import { organizationRoutes } from './organizationRoutes.js';
 import { resourceRoutes } from './resourceRoutes.js';
+import { securityRoutes } from './securityRoutes.js';
 import { syncRoutes } from './syncRoutes.js';
 
 export const routes = Router();
@@ -21,3 +22,4 @@ routes.use('/api/sync', syncRoutes);
 routes.use('/api/dashboard', dashboardRoutes);
 routes.use('/api/billing', billingRoutes);
 routes.use('/api/resources', resourceRoutes);
+routes.use('/api/security', securityRoutes);
